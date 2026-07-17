@@ -140,7 +140,7 @@ function getTopRules(findings: Finding[]): Array<{
       total: items.length,
       impact: items[0]?.impact ?? '',
       help: items[0]?.help ?? '',
-      urls: [...new Set(items.map((item) => item.url))].length,
+      urls: new Set(items.map((item) => item.url)).size,
     }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 15);

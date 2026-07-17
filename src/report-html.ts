@@ -257,7 +257,7 @@ function renderRuleTable(groups: Map<string, Finding[]>): string {
         <td>${findings.length}</td>
         <td>${escapeHtml(first?.impact ?? '')}</td>
         <td>${escapeHtml(first?.help ?? '')}</td>
-        <td>${escapeHtml([...new Set(findings.map((finding) => finding.url))].length.toString())}</td>
+        <td>${escapeHtml(new Set(findings.map((finding) => finding.url)).size.toString())}</td>
       </tr>`;
     })
     .join('');
