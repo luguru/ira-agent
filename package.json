@@ -8,6 +8,9 @@
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "test": "tsx --test tests/*.test.ts",
+    "test:report": "tsx --test tests/report-html.test.ts",
+    "preview:report": "tsx tests/preview-report.ts",
+    "preview:report:open": "npm run preview:report && open runs/mock-preview/report.html",
     "start": "node dist/index.js",
     "format": "prettier --write .",
     "clean": "node -e \"require('fs').rmSync('runs', { recursive: true, force: true })\""

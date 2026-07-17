@@ -49,7 +49,21 @@ Comandos de soporte:
 ```bash
 npm run build
 npm test
+npm run test:report
+npm run preview:report
 ```
+
+Comandos rapidos para iterar en el reporte sin lanzar auditoria real:
+
+```bash
+npm run test:report
+npm run preview:report
+npm run preview:report:open
+```
+
+- `test:report`: valida generacion de HTML/CSS/JS con fixtures mock.
+- `preview:report`: genera un reporte de ejemplo en `runs/mock-preview/`.
+- `preview:report:open`: genera el mock y abre `report.html` automaticamente (macOS).
 
 ## Configuracion
 
@@ -137,6 +151,8 @@ npm run audit
 - Este proyecto usa versionado SemVer en `package.json`.
 - El historial de cambios por version se mantiene en [CHANGELOG.md](CHANGELOG.md).
 - Durante el desarrollo, anadir cambios en la seccion `Unreleased` del changelog.
+- Documentar en README cualquier cambio funcional que impacte uso, comandos o flujo operativo del equipo.
+- En el changelog, agrupar cambios similares por area para mantener trazabilidad sin crear listas interminables.
 
 ## Troubleshooting
 

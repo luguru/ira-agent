@@ -9,6 +9,19 @@ Formato basado en Keep a Changelog y versionado SemVer.
 ### Added
 - Estructura inicial para mantener historial de cambios por version.
 
+### Changed
+- Reporte HTML (UX/UI):
+	- Se separaron assets del reporte en archivos externos (`report.css` y `report.js`) y se mejoro la maquetacion del detalle.
+	- Se incorporaron filtros por dispositivo, estado e impacto con contador dinamico y accion de limpieza.
+	- Se anadio una leyenda de lectura ampliada con definiciones de campos, estado y baremo de impacto.
+	- Se ajusto la nomenclatura visual para evitar ambiguedades (por ejemplo, `Flujo` en la tarjeta de detalle).
+	- Se normalizaron textos visibles al castellano, manteniendo terminos tecnicos en ingles cuando aportan trazabilidad (`ruleId`, `violation`, `needs-review`, `flow:*`).
+
+- Pruebas y preview local de reporte:
+	- Fixture reutilizable para simular ejecuciones de auditoria sin lanzar crawls reales.
+	- Test dedicado de `report-html` para validar leyenda, filtros, traducciones y generacion de assets.
+	- Scripts de trabajo rapido para reporte (`test:report`, `preview:report`, `preview:report:open`).
+
 ## [0.1.0] - 2026-07-17
 
 ### Added
@@ -40,3 +53,4 @@ Formato basado en Keep a Changelog y versionado SemVer.
 - Añadir cambios nuevos en [Unreleased].
 - Al publicar version, mover [Unreleased] a un bloque [x.y.z] con fecha.
 - Tipos de cambio recomendados: Added, Changed, Fixed, Removed, Security.
+- Agrupar cambios similares por area (por ejemplo: "Reporte HTML", "Motor de auditoria", "Tests y DX") para evitar listados interminables.
