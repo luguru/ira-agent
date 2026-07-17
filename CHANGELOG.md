@@ -22,6 +22,10 @@ Formato basado en Keep a Changelog y versionado SemVer.
 	- Test dedicado de `report-html` para validar leyenda, filtros, traducciones y generacion de assets.
 	- Scripts de trabajo rapido para reporte (`test:report`, `preview:report`, `preview:report:open`).
 
+- Proceso de colaboracion:
+	- La plantilla de PR ahora exige proponer tipo de bump SemVer (`patch`, `minor`, `major`) con justificacion.
+	- Se agrega verificacion explicita de actualizacion de `Unreleased` en el checklist del PR.
+
 ## [0.1.0] - 2026-07-17
 
 ### Added
@@ -54,3 +58,11 @@ Formato basado en Keep a Changelog y versionado SemVer.
 - Al publicar version, mover [Unreleased] a un bloque [x.y.z] con fecha.
 - Tipos de cambio recomendados: Added, Changed, Fixed, Removed, Security.
 - Agrupar cambios similares por area (por ejemplo: "Reporte HTML", "Motor de auditoria", "Tests y DX") para evitar listados interminables.
+
+## Convencion de versionado (SemVer)
+
+- `patch` (fix): correcciones sin cambios de comportamiento esperados para integraciones existentes (bugs, textos, ajustes de estabilidad, mejoras internas sin romper compatibilidad).
+- `minor` (feature): funcionalidades nuevas o mejoras relevantes compatibles hacia atras (nuevos comandos, nuevas capacidades de reporte, nuevas opciones de configuracion no rompedoras).
+- `major` (breaking): cambios incompatibles hacia atras (renombre/eliminacion de campos de salida, cambios en contrato CLI/config, eliminacion de comportamientos esperados por consumidores actuales).
+- Si un cambio requiere bump de version, reflejarlo primero en `Unreleased` y, al publicar, crear el bloque de version correspondiente con fecha.
+- En caso de duda entre `patch` y `minor`, usar `minor` cuando el usuario final perciba nueva capacidad y `patch` cuando sea correccion o refinamiento.
