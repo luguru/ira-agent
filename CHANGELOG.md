@@ -6,6 +6,8 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-17
+
 ### Added
 - Estructura inicial para mantener historial de cambios por version.
 
@@ -22,11 +24,6 @@ Formato basado en Keep a Changelog y versionado SemVer.
 	- Se normalizaron textos visibles al castellano, manteniendo terminos tecnicos en ingles cuando aportan trazabilidad (`ruleId`, `violation`, `needs-review`, `flow:*`).
 	- Se ajusta el indicador visual del acordeon para reflejar direccion de cierre/apertura de forma mas clara.
 
-### Fixed
-- Reporte HTML (interaccion):
-	- Se corrige la ocultacion de paneles del acordeon respetando el atributo `hidden` en `finding-body`.
-	- Se restablece el comportamiento de mostrar/ocultar paneles al clicar la cabecera o el control del acordeon.
-
 - Pruebas y preview local de reporte:
 	- Fixture reutilizable para simular ejecuciones de auditoria sin lanzar crawls reales.
 	- Test dedicado de `report-html` para validar leyenda, filtros, traducciones y generacion de assets.
@@ -35,6 +32,11 @@ Formato basado en Keep a Changelog y versionado SemVer.
 - Proceso de colaboracion:
 	- La plantilla de PR ahora exige proponer tipo de bump SemVer (`patch`, `minor`, `major`) con justificacion.
 	- Se agrega verificacion explicita de actualizacion de `Unreleased` en el checklist del PR.
+
+### Fixed
+- Reporte HTML (interaccion):
+	- Se corrige la ocultacion de paneles del acordeon respetando el atributo `hidden` en `finding-body`.
+	- Se restablece el comportamiento de mostrar/ocultar paneles al clicar la cabecera o el control del acordeon.
 
 ## [0.1.0] - 2026-07-17
 
