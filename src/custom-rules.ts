@@ -26,7 +26,7 @@ export async function runCustomRules(page: import('playwright').Page, context: C
       url: context.url,
       viewport: context.viewport,
       state: context.state,
-      engine: 'axe-core',
+      engine: 'custom-rule',
       status: 'needs-review',
       ruleId: 'custom-generic-link-text',
       impact: 'moderate',
@@ -34,8 +34,7 @@ export async function runCustomRules(page: import('playwright').Page, context: C
       en301549: [],
       tags: ['custom', 'wcag244'],
       help: 'Revisar enlaces con texto genérico',
-      description:
-        'El texto del enlace puede no identificar su propósito fuera de contexto.',
+      description: 'El texto del enlace puede no identificar su propósito fuera de contexto.',
       helpUrl: '',
       selector: '',
       html: link.html,

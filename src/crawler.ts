@@ -2,6 +2,9 @@ import type { Browser } from 'playwright';
 import type { AuditConfig } from './types.js';
 import { normalizeUrl, shouldVisitUrl } from './url-utils.js';
 
+const SITEMAP_MAX_DEPTH = 3;
+const SITEMAP_MAX_CHARS = 2_000_000;
+
 type QueueItem = {
   url: string;
   depth: number;
@@ -65,16 +68,18 @@ export async function crawlSite(browser: Browser, config: AuditConfig): Promise<
 
     try {
       await page.goto(current.url, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: config.waitUntil,
         timeout: config.timeoutMs,
       });
 
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => undefined);
+      await page
+        .waitForLoadState('networkidle', {
+          timeout: Math.min(config.timeoutMs, 5000),
+        })
+        .catch(() => undefined);
 
       const hrefs = await page.$$eval('a[href]', (links) =>
-        links
-          .map((link) => (link as HTMLAnchorElement).href)
-          .filter(Boolean),
+        links.map((link) => (link as HTMLAnchorElement).href).filter(Boolean),
       );
 
       for (const href of hrefs) {
@@ -94,7 +99,7 @@ async function discoverFromSitemap(config: AuditConfig): Promise<string[]> {
   const sitemapUrl = new URL('/sitemap.xml', config.baseUrl).toString();
 
   try {
-    return await readSitemap(sitemapUrl, config, 0);
+    return await readSitemap(sitemapUrl, config, 0, new Set<string>());
   } catch {
     return [];
   }
@@ -104,12 +109,21 @@ async function readSitemap(
   sitemapUrl: string,
   config: AuditConfig,
   depth: number,
+  seenSitemaps: Set<string>,
 ): Promise<string[]> {
-  if (depth > 2) {
+  if (depth > SITEMAP_MAX_DEPTH) {
     return [];
   }
 
-  const response = await fetch(sitemapUrl);
+  const normalizedSitemapUrl = normalizeAbsoluteUrl(sitemapUrl, sitemapUrl);
+
+  if (!normalizedSitemapUrl || seenSitemaps.has(normalizedSitemapUrl)) {
+    return [];
+  }
+
+  seenSitemaps.add(normalizedSitemapUrl);
+
+  const response = await fetchWithTimeout(normalizedSitemapUrl, config.timeoutMs);
 
   if (!response.ok) {
     return [];
@@ -117,20 +131,30 @@ async function readSitemap(
 
   const xml = await response.text();
 
-  const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/gi)]
-    .map((match) => match[1]?.trim())
-    .filter((value): value is string => Boolean(value));
+  if (xml.length > SITEMAP_MAX_CHARS) {
+    return [];
+  }
+
+  const locs = extractLocEntries(xml);
 
   const urls: string[] = [];
 
   for (const loc of locs) {
-    if (loc.endsWith('.xml')) {
-      const nested = await readSitemap(loc, config, depth + 1).catch(() => []);
+    const absoluteLoc = normalizeAbsoluteUrl(loc, normalizedSitemapUrl);
+
+    if (!absoluteLoc) {
+      continue;
+    }
+
+    if (absoluteLoc.toLowerCase().endsWith('.xml')) {
+      const nested = await readSitemap(absoluteLoc, config, depth + 1, seenSitemaps).catch(
+        () => [],
+      );
       urls.push(...nested);
       continue;
     }
 
-    const normalized = normalizeUrl(loc, config.baseUrl, config.keepQueryParams);
+    const normalized = normalizeUrl(absoluteLoc, config.baseUrl, config.keepQueryParams);
 
     if (normalized && shouldVisitUrl(normalized, config)) {
       urls.push(normalized);
@@ -142,4 +166,65 @@ async function readSitemap(
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function extractLocEntries(xml: string): string[] {
+  const entries: string[] = [];
+  let cursor = 0;
+
+  while (cursor < xml.length) {
+    const start = xml.indexOf('<loc>', cursor);
+
+    if (start === -1) {
+      break;
+    }
+
+    const end = xml.indexOf('</loc>', start + 5);
+
+    if (end === -1) {
+      break;
+    }
+
+    const rawValue = xml.slice(start + 5, end).trim();
+
+    if (rawValue) {
+      entries.push(decodeXmlEntities(rawValue));
+    }
+
+    cursor = end + 6;
+  }
+
+  return entries;
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'");
+}
+
+function normalizeAbsoluteUrl(input: string, baseUrl: string): string | null {
+  try {
+    const url = new URL(input, baseUrl);
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }

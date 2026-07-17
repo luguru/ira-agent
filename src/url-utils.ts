@@ -1,7 +1,32 @@
 import type { AuditConfig } from './types.js';
 
-const SKIP_EXTENSIONS =
-  /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|7z|jpg|jpeg|png|gif|webp|svg|mp4|mov|avi|mp3|wav|css|js|json|xml)$/i;
+const SKIP_FILE_EXTENSIONS = new Set([
+  'pdf',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
+  'zip',
+  'rar',
+  '7z',
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webp',
+  'svg',
+  'mp4',
+  'mov',
+  'avi',
+  'mp3',
+  'wav',
+  'css',
+  'js',
+  'json',
+  'xml',
+]);
 
 const TRACKING_PARAMS = [
   'utm_source',
@@ -50,7 +75,7 @@ export function shouldVisitUrl(urlString: string, config: AuditConfig): boolean 
       return false;
     }
 
-    if (SKIP_EXTENSIONS.test(url.pathname)) {
+    if (hasSkippedExtension(url.pathname)) {
       return false;
     }
 
@@ -78,4 +103,17 @@ export function shouldVisitUrl(urlString: string, config: AuditConfig): boolean 
 
 export function getSafeRunId(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
+}
+
+function hasSkippedExtension(pathname: string): boolean {
+  const fileName = pathname.split('/').pop() ?? '';
+  const dotIndex = fileName.lastIndexOf('.');
+
+  if (dotIndex < 1) {
+    return false;
+  }
+
+  const extension = fileName.slice(dotIndex + 1).toLowerCase();
+
+  return SKIP_FILE_EXTENSIONS.has(extension);
 }

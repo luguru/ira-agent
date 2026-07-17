@@ -1,7 +1,9 @@
 import type { Browser } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
-import type { AuditConfig, PageAudit, ViewportConfig } from './types.js';
+import type { AuditConfig, Finding, PageAudit, ViewportConfig } from './types.js';
 import { countFindings, normalizeAxeResults } from './axe-normalizer.js';
+import { runCustomRules } from './custom-rules.js';
+import { executeFlow, getMatchingFlows } from './flows.js';
 
 export async function auditPage(
   browser: Browser,
@@ -20,24 +22,37 @@ export async function auditPage(
   const page = await context.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: config.waitUntil,
-      timeout: config.timeoutMs,
-    });
-
-    await page.waitForTimeout(500);
+    await gotoAuditableState(page, url, config);
 
     const title = await page.title().catch(() => '');
+    const findings: Finding[] = [];
 
-    const axeResults = await new AxeBuilder({ page })
-      .withTags(config.axeTags)
-      .analyze();
+    findings.push(
+      ...(await collectStateFindings(page, config, {
+        url,
+        viewport: viewport.name,
+        state: 'initial',
+      })),
+    );
 
-    const findings = normalizeAxeResults(axeResults, {
-      url,
-      viewport: viewport.name,
-      state: 'initial',
-    });
+    const flows = getMatchingFlows(config.flows ?? [], url, viewport.name);
+
+    for (const flow of flows) {
+      try {
+        await gotoAuditableState(page, url, config);
+        await executeFlow(page, flow, config.timeoutMs);
+
+        findings.push(
+          ...(await collectStateFindings(page, config, {
+            url,
+            viewport: viewport.name,
+            state: `flow:${flow.name}`,
+          })),
+        );
+      } catch (error) {
+        console.warn(`[flow] ${flow.name} en ${url}: ${formatError(error)}`);
+      }
+    }
 
     return {
       url,
@@ -73,4 +88,38 @@ export async function auditPage(
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+async function collectStateFindings(
+  page: import('playwright').Page,
+  config: AuditConfig,
+  context: {
+    url: string;
+    viewport: string;
+    state: string;
+  },
+): Promise<Finding[]> {
+  const axeResults = await new AxeBuilder({ page }).withTags(config.axeTags).analyze();
+
+  const findings = normalizeAxeResults(axeResults, context);
+  const customFindings = await runCustomRules(page, context);
+
+  return [...findings, ...customFindings];
+}
+
+async function gotoAuditableState(
+  page: import('playwright').Page,
+  url: string,
+  config: AuditConfig,
+): Promise<void> {
+  await page.goto(url, {
+    waitUntil: config.waitUntil,
+    timeout: config.timeoutMs,
+  });
+
+  await page
+    .waitForLoadState('networkidle', {
+      timeout: Math.min(config.timeoutMs, 5000),
+    })
+    .catch(() => undefined);
 }

@@ -11,6 +11,22 @@ export type ViewportConfig = {
   isMobile?: boolean;
 };
 
+export type FlowStepAction = 'click' | 'type' | 'press' | 'wait';
+
+export type FlowStep = {
+  action: FlowStepAction;
+  selector?: string;
+  value?: string;
+  timeoutMs?: number;
+};
+
+export type FlowConfig = {
+  name: string;
+  urlIncludes?: string[];
+  viewport?: string;
+  steps: FlowStep[];
+};
+
 export type AuditConfig = {
   siteName: string;
   baseUrl: string;
@@ -26,13 +42,14 @@ export type AuditConfig = {
   timeoutMs: number;
   axeTags: string[];
   viewports: ViewportConfig[];
+  flows?: FlowConfig[];
 };
 
 export type Finding = {
   url: string;
   viewport: string;
   state: string;
-  engine: 'axe-core';
+  engine: 'axe-core' | 'custom-rule';
   status: FindingStatus;
   ruleId: string;
   impact: Impact;
