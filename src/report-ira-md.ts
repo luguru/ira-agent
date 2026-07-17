@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
@@ -28,8 +30,8 @@ export async function writeIraMarkdown(
 | URLs descubiertas | ${run.pagesDiscovered} |
 | Análisis ejecutados | ${run.pagesAnalyzed} |
 | Herramienta principal | Playwright + axe-core |
-| Viewports | ${run.config.viewports.map((viewport) => viewport.name).join(', ')} |
-| Tags aplicados | ${run.config.axeTags.join(', ')} |
+| Dispositivos | ${run.config.viewports.map((viewport) => viewport.name).join(', ')} |
+| Etiquetas aplicadas | ${run.config.axeTags.join(', ')} |
 
 ## 2. Alcance de la revisión
 
@@ -68,7 +70,7 @@ Este informe no equivale a una auditoría manual completa ni a una declaración 
 
 ${renderCriteria(criteria)}
 
-## 6. Tendencia respecto al baseline
+## 6. Tendencia respecto a la línea base
 
 ${renderTrend(metrics, trend)}
 
@@ -82,7 +84,7 @@ A partir de los resultados automáticos, se recomienda:
 
 1. Priorizar las incidencias con impacto crítico y serio.
 2. Corregir primero los problemas recurrentes que afecten a componentes compartidos, como cabecera, navegación, buscador, formularios, cards, modales o footer.
-3. Revisar manualmente todos los casos clasificados como “needs-review”.
+3. Revisar manualmente todos los casos clasificados como “requiere revisión”.
 4. Complementar este informe con pruebas de teclado, lector de pantalla y revisión de estados dinámicos.
 5. Reejecutar el análisis tras cada bloque de correcciones para comprobar regresiones.
 
@@ -100,8 +102,8 @@ El detalle completo de incidencias se encuentra en:
 
 function renderTrend(metrics: RunMetrics, trend: RunTrend): string {
   const baseline = trend.hasBaseline
-    ? `Baseline usado: ${trend.baselineRunId}`
-    : 'Sin baseline previo para este sitio. Los deltas se muestran a 0.';
+    ? `Línea base usada: ${trend.baselineRunId}`
+    : 'Sin línea base previa para este sitio. Los deltas se muestran a 0.';
 
   return `${baseline}
 
@@ -220,7 +222,9 @@ function renderTopRules(
   }
 
   const rows = rules
-    .map((rule) => `| ${rule.ruleId} | ${rule.total} | ${rule.impact} | ${rule.urls} | ${rule.help} |`)
+    .map(
+      (rule) => `| ${rule.ruleId} | ${rule.total} | ${rule.impact} | ${rule.urls} | ${rule.help} |`,
+    )
     .join('\n');
 
   return `| Regla | Total | Impacto | URLs afectadas | Descripción |

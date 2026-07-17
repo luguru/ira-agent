@@ -332,7 +332,7 @@ export const REPORT_JS = `(() => {
 
     const direct = value.trim();
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(direct)) {
+    if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(direct)) {
       return direct;
     }
 

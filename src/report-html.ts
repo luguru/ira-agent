@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
@@ -773,10 +775,11 @@ function renderRecommendation(value: string): string {
     return 'Sin detalle técnico';
   }
 
+  const referenceRegex = /^Referencia:\s*(https?:\/\/\S+)$/i;
   const rendered = lines.map((line) => {
-    const match = line.match(/^Referencia:\s*(https?:\/\/\S+)$/i);
+    const match = referenceRegex.exec(line);
 
-    if (!match || !match[1]) {
+    if (!match?.[1]) {
       return escapeHtml(line);
     }
 
@@ -881,10 +884,7 @@ function dedupeRepeatedTechnicalLines(value: string): string {
   const seen = new Set<string>();
 
   for (const line of lines) {
-    const key = line
-      .toLowerCase()
-      .replace(/[.。]+$/g, '')
-      .trim();
+    const key = trimTrailingSentencePunctuation(line.toLowerCase()).trim();
 
     if (seen.has(key)) {
       continue;
@@ -895,6 +895,22 @@ function dedupeRepeatedTechnicalLines(value: string): string {
   }
 
   return uniqueLines.join('\n');
+}
+
+function trimTrailingSentencePunctuation(value: string): string {
+  let end = value.length;
+
+  while (end > 0) {
+    const current = value[end - 1];
+
+    if (current !== '.' && current !== '。') {
+      break;
+    }
+
+    end -= 1;
+  }
+
+  return value.slice(0, end);
 }
 
 const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
@@ -924,11 +940,11 @@ const TECHNICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
   [/Fix any of the following:\s*/gi, 'Corrige cualquiera de los siguientes puntos:\n'],
   [/Fix all of the following:\s*/gi, 'Corrige todos los siguientes puntos:\n'],
   [
-    /Element has insufficient color contrast of\s*([0-9]+(?:\.[0-9]+)?)/gi,
+    /Element has insufficient color contrast of\s*(\d+(?:\.\d+)?)/gi,
     'El elemento tiene una relación de contraste insuficiente de $1',
   ],
   [
-    /Expected contrast ratio of\s*([0-9]+(?:\.[0-9]+)?\s*:\s*[0-9]+)/gi,
+    /Expected contrast ratio of\s*(\d+(?:\.\d+)?\s*:\s*\d+)/gi,
     'Se espera una relación de contraste de $1',
   ],
   [
