@@ -132,6 +132,12 @@ npm run audit
 6. Subir cambios de config/reportes necesarios
 7. Referenciar en PR el run usado
 
+## Versionado y changelog
+
+- Este proyecto usa versionado SemVer en `package.json`.
+- El historial de cambios por version se mantiene en [CHANGELOG.md](CHANGELOG.md).
+- Durante el desarrollo, anadir cambios en la seccion `Unreleased` del changelog.
+
 ## Troubleshooting
 
 Si un flow falla por selector:
