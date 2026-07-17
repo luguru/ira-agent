@@ -1,0 +1,56 @@
+{
+  "siteName": "Sitio de prueba",
+  "baseUrl": "https://www.ejemplo.es",
+  "maxPages": 30,
+  "maxDepth": 2,
+  "concurrency": 2,
+  "include": ["/"],
+  "exclude": [
+    "/wp-admin",
+    "/admin",
+    "/login",
+    "/logout",
+    "/carrito",
+    "/checkout",
+    "/area-privada"
+  ],
+  "crawlSitemap": true,
+  "sameOriginOnly": true,
+  "keepQueryParams": false,
+  "waitUntil": "domcontentloaded",
+  "timeoutMs": 30000,
+  "axeTags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa",
+    "EN-301-549"
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "isMobile": true
+    }
+  ],
+  "flows": [
+    {
+      "name": "menu-mobile",
+      "urlIncludes": ["/"],
+      "viewport": "mobile",
+      "steps": [
+        {
+          "action": "click",
+          "selector": "button[aria-controls], button.menu, .menu-button"
+        }
+      ]
+    }
+  ]
+}
