@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -13,15 +15,19 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
   try {
     const run = createMockAuditRun();
     const metrics = calculateRunMetrics(run);
-    const trend = buildRunTrend(metrics, {
-      violations: 8,
-      needsReview: 5,
-      technicalErrors: 1,
-      critical: 3,
-      serious: 2,
-      moderate: 2,
-      minor: 1,
-    }, 'baseline-mock-1');
+    const trend = buildRunTrend(
+      metrics,
+      {
+        violations: 8,
+        needsReview: 5,
+        technicalErrors: 1,
+        critical: 3,
+        serious: 2,
+        moderate: 2,
+        minor: 1,
+      },
+      'baseline-mock-1',
+    );
 
     await writeHtmlReport(run, outDir, metrics, trend);
 
@@ -83,7 +89,10 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /Qué significa cada campo de la incidencia/);
     assert.match(html, /Fecha de detección/);
     assert.match(html, /Después de abrir el menú/);
-    assert.match(html, /Los elementos deben cumplir los umbrales mínimos de relación de contraste de color\./);
+    assert.match(
+      html,
+      /Los elementos deben cumplir los umbrales mínimos de relación de contraste de color\./,
+    );
     assert.match(html, /Los elementos solo deben usar atributos ARIA permitidos\./);
     assert.match(html, /Corrige cualquiera de los siguientes puntos:/);
     assert.match(html, /Corrige todos los siguientes puntos:/);

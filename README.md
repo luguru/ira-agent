@@ -2,14 +2,14 @@
 
 Herramienta local para auditar accesibilidad web con Playwright + axe-core.
 
-Genera resultados tecnicos en JSON y reportes para revision rapida (HTML y Markdown), incluyendo comparativa de tendencia entre ejecuciones.
+Genera resultados técnicos en JSON y reportes para revisión rápida (HTML y Markdown), incluyendo comparativa de tendencia entre ejecuciones.
 
 ## Requisitos
 
 - Node.js 20+
 - npm 10+
 
-## Instalacion
+## Instalación
 
 1. Clonar el repositorio
 
@@ -30,15 +30,15 @@ npm ci
 npx playwright install
 ```
 
-## Uso rapido
+## Uso rápido
 
-Auditoria minima para validar pipeline:
+Auditoría mínima para validar pipeline:
 
 ```bash
 npm run audit -- --url https://example.com --maxPages 1 --maxDepth 0
 ```
 
-Auditoria completa usando la configuracion del proyecto:
+Auditoría completa usando la configuración del proyecto:
 
 ```bash
 npm run audit
@@ -53,7 +53,7 @@ npm run test:report
 npm run preview:report
 ```
 
-Comandos rapidos para iterar en el reporte sin lanzar auditoria real:
+Comandos rápidos para iterar en el reporte sin lanzar auditoría real:
 
 ```bash
 npm run test:report
@@ -61,11 +61,16 @@ npm run preview:report
 npm run preview:report:open
 ```
 
-- `test:report`: valida generacion de HTML/CSS/JS con fixtures mock.
+- `test:report`: valida generación de HTML/CSS/JS con fixtures mock.
 - `preview:report`: genera un reporte de ejemplo en `runs/mock-preview/`.
-- `preview:report:open`: genera el mock y abre `report.html` automaticamente (macOS).
+- `preview:report:open`: genera el mock y abre `report.html` automáticamente (macOS).
 
-## Configuracion
+Nota de TypeScript:
+
+- `tsconfig.json` se usa para tipado en editor (incluye `src` y `tests`, sin emisión).
+- `tsconfig.build.json` se usa para compilación (`npm run build`) y genera `dist` solo desde `src`.
+
+## Configuración
 
 La auditoria se define en [audit.config.json](audit.config.json).
 
@@ -76,10 +81,10 @@ Campos clave:
 - maxPages y maxDepth: alcance del rastreo
 - viewports: lista de dispositivos a evaluar
 - include/exclude: rutas permitidas o excluidas
-- axeTags: criterios de evaluacion automaticos
-- flows: pasos para abrir estados dinamicos (menus, modales, etc.)
+- axeTags: criterios de evaluación automáticos
+- flows: pasos para abrir estados dinámicos (menús, modales, etc.)
 
-### Ejemplo de prueba rapida por CLI
+### Ejemplo de prueba rápida por CLI
 
 Aunque exista config, puedes sobreescribir puntualmente:
 
@@ -87,9 +92,9 @@ Aunque exista config, puedes sobreescribir puntualmente:
 npm run audit -- --url https://example.com --maxPages 3 --maxDepth 1
 ```
 
-## Salida de cada ejecucion
+## Salida de cada ejecución
 
-Cada ejecucion crea una carpeta en `runs/` con prefijo del host y timestamp.
+Cada ejecución crea una carpeta en `runs/` con prefijo del host y timestamp.
 
 Ejemplo: `runs/www-ejemplo-es_2026-07-17T07-20-10-268Z`
 
@@ -99,49 +104,49 @@ Archivos generados:
 - report.html: informe visual navegable
 - informe-ira-automatico.md: informe resumido en Markdown
 - results.ndjson: salida incremental por unidad de trabajo
-- trend.json: metricas y deltas respecto al baseline
-- resumen-ia.md: solo si resumen IA esta habilitado
+- trend.json: métricas y deltas respecto a la línea base
+- resumen-ia.md: solo si el resumen IA está habilitado
 
-En `report.html`, cada incidencia se presenta como ficha IRA con campos de gestion (ID, titulo, impacto, estado, WCAG, nivel, ubicacion, perfil afectado, evidencia, resultado esperado, recomendacion, responsable y fechas).
+En `report.html`, cada incidencia se presenta como ficha IRA con campos de gestión (ID, título, impacto, estado, WCAG, nivel, ubicación, perfil afectado, evidencia, resultado esperado, recomendación, responsable y fechas).
 
 Comportamiento actual de la ficha IRA:
 
-- Cada incidencia funciona como acordeon (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
+- Cada incidencia funciona como acordeón (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
 - El estado seleccionado se muestra en cabecera como chip y se edita dentro del bloque de metadatos.
-- La cuadricula interna se organiza en filas para facilitar lectura de analisis y seguimiento.
-- El nombre del sitio mostrado en el encabezado y en Alcance prioriza el titulo real detectado (`<title>`), con fallback a `h1` y finalmente a `siteName`.
+- La cuadrícula interna se organiza en filas para facilitar lectura de análisis y seguimiento.
+- El nombre del sitio mostrado en el encabezado y en Alcance prioriza el título real detectado (`<title>`), con fallback a `h1` y finalmente a `siteName`.
 - Los criterios WCAG aparecen enlazados a su referencia oficial en W3C (nueva pestaña).
-- La recomendacion incluye referencia clicable cuando existe `helpUrl`.
-- La Fecha de deteccion siempre es fija.
-- La Fecha de reapertura aparece automaticamente al pasar el estado a `reabierto` y queda registrada.
-- La Fecha de validacion aparece automaticamente al pasar el estado a `validado`.
+- La recomendación incluye referencia clicable cuando existe `helpUrl`.
+- La fecha de detección siempre es fija.
+- La fecha de reapertura aparece automáticamente al pasar el estado a `reabierto` y queda registrada.
+- La fecha de validación aparece automáticamente al pasar el estado a `validado`.
 
 Campos editables en el reporte:
 
 - Estado (select)
 - Responsable (select)
 
-Nota: estas ediciones se guardan en `localStorage` del navegador para facilitar seguimiento local del equipo.
+Nota: estas ediciones se guardan en `localStorage` del navegador para facilitar el seguimiento local del equipo.
 
-Ademas, se mantiene historico global en:
+Además, se mantiene histórico global en:
 
 - runs/history.ndjson
 
-## Tendencias y baseline
+## Tendencias y línea base
 
-La comparativa se calcula contra la ultima ejecucion del mismo siteName y baseUrl.
+La comparativa se calcula contra la última ejecución del mismo siteName y baseUrl.
 
-Veras deltas en:
+Verás deltas en:
 
 - Consola al finalizar
 - report.html
 - informe-ira-automatico.md
 - trend.json
 
-Interpretacion rapida:
+Interpretación rápida:
 
-- Delta negativo en incidencias o errores tecnicos: mejora
-- Delta positivo: regresion o nueva deuda detectada
+- Delta negativo en incidencias o errores técnicos: mejora
+- Delta positivo: regresión o nueva deuda detectada
 
 ## Resumen IA (opcional)
 
@@ -153,7 +158,7 @@ export OPENAI_API_KEY=tu_api_key
 export OPENAI_MODEL=gpt-5.5
 ```
 
-Luego ejecuta auditoria normal:
+Luego ejecuta auditoría normal:
 
 ```bash
 npm run audit
@@ -163,8 +168,8 @@ npm run audit
 
 1. Crear rama de trabajo
 2. Ajustar audit.config.json para el sitio objetivo
-3. Ejecutar auditoria rapida
-4. Ejecutar auditoria completa
+3. Ejecutar auditoría rápida
+4. Ejecutar auditoría completa
 5. Revisar report.html y trend.json
 6. Subir cambios de config/reportes necesarios
 7. Referenciar en PR el run usado
@@ -172,10 +177,10 @@ npm run audit
 ## Versionado y changelog
 
 - Este proyecto usa versionado SemVer en `package.json`.
-- El historial de cambios por version se mantiene en [CHANGELOG.md](CHANGELOG.md).
-- Durante el desarrollo, anadir cambios en la seccion `Unreleased` del changelog.
+- El historial de cambios por versión se mantiene en [CHANGELOG.md](CHANGELOG.md).
+- Durante el desarrollo, añadir cambios en la sección `Unreleased` del changelog.
 - Documentar en README cualquier cambio funcional que impacte uso, comandos o flujo operativo del equipo.
-- En el changelog, agrupar cambios similares por area para mantener trazabilidad sin crear listas interminables.
+- En el changelog, agrupar cambios similares por área para mantener trazabilidad sin crear listas interminables.
 
 ## Troubleshooting
 
@@ -183,9 +188,9 @@ Si un flow falla por selector:
 
 - Revisar selectors en audit.config.json dentro de flows
 - Probar primero con maxPages 1 y maxDepth 0
-- Repetir ejecucion tras ajustar selector
+- Repetir ejecución tras ajustar selector
 
-Si una ejecucion tarda demasiado:
+Si una ejecución tarda demasiado:
 
 - Reducir maxPages o maxDepth
 - Subir exclude para zonas no relevantes

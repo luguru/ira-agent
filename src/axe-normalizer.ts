@@ -1,6 +1,6 @@
 import type { Finding, FindingCounts, FindingStatus, Impact } from './types.js';
 
-type AxeImpact = 'minor' | 'moderate' | 'serious' | 'critical' | null | undefined;
+type AxeImpact = 'minor' | 'moderate' | 'serious' | 'critical' | null;
 
 type AxeNode = {
   target?: Array<string | string[]>;
@@ -86,13 +86,8 @@ function normalizeRuleGroup(
   return findings;
 }
 
-function normalizeImpact(value: AxeImpact): Impact {
-  if (
-    value === 'minor' ||
-    value === 'moderate' ||
-    value === 'serious' ||
-    value === 'critical'
-  ) {
+function normalizeImpact(value: AxeImpact | undefined): Impact {
+  if (value === 'minor' || value === 'moderate' || value === 'serious' || value === 'critical') {
     return value;
   }
 

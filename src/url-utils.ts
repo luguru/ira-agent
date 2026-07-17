@@ -106,13 +106,14 @@ export function getSafeRunId(baseUrl: string): string {
 
   try {
     const url = new URL(baseUrl);
-    const host = url.hostname
-      .toLowerCase()
-      .replace(/\./g, '-')
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/[.-]{2,}/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60);
+    const host = trimHyphenEdges(
+      url.hostname
+        .toLowerCase()
+        .replaceAll('.', '-')
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/[.-]{2,}/g, '-')
+        .slice(0, 60),
+    );
 
     if (host) {
       return `${host}_${timestamp}`;
@@ -122,6 +123,21 @@ export function getSafeRunId(baseUrl: string): string {
   }
 
   return timestamp;
+}
+
+function trimHyphenEdges(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value[start] === '-') {
+    start += 1;
+  }
+
+  while (end > start && value[end - 1] === '-') {
+    end -= 1;
+  }
+
+  return value.slice(start, end);
 }
 
 function hasSkippedExtension(pathname: string): boolean {

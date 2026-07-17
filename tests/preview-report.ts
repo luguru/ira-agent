@@ -1,5 +1,8 @@
+/// <reference types="node" />
+
 import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
+import process from 'node:process';
 import { writeHtmlReport } from '../src/report-html.js';
 import { buildRunTrend, calculateRunMetrics } from '../src/run-metrics.js';
 import { createMockAuditRun } from './fixtures/mock-audit-run.js';
@@ -31,7 +34,9 @@ async function main(): Promise<void> {
   console.log('Abre runs/mock-preview/report.html en el navegador.');
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error('No se pudo generar el mock report.', error);
   process.exitCode = 1;
-});
+}

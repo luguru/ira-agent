@@ -1,4 +1,7 @@
+/// <reference types="node" />
+
 import path from 'node:path';
+import process from 'node:process';
 import { getSafeRunId } from './url-utils.js';
 import { createAiSummaryProvider } from './ai-summary-provider.js';
 import { readConfig, validateConfig, type CliArgs } from './config.js';

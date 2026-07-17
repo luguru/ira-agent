@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { AuditConfig } from '../src/types.js';
@@ -22,7 +24,11 @@ const baseConfig: AuditConfig = {
 };
 
 test('normalizeUrl elimina hash y query por defecto', () => {
-  const normalized = normalizeUrl('https://example.com/path?a=1#section', baseConfig.baseUrl, false);
+  const normalized = normalizeUrl(
+    'https://example.com/path?a=1#section',
+    baseConfig.baseUrl,
+    false,
+  );
 
   assert.equal(normalized, 'https://example.com/path');
 });
