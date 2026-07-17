@@ -5,9 +5,16 @@ import { auditPage } from './audit-page.js';
 import { crawlSite } from './crawler.js';
 import { writeHtmlReport } from './report-html.js';
 import { writeIraMarkdown } from './report-ira-md.js';
-import type { AuditConfig, AuditRun, ViewportConfig } from './types.js';
+import type { AuditConfig, AuditRun, RunMetrics, RunTrend, ViewportConfig } from './types.js';
 import type { AiSummaryProvider } from './ai-summary-provider.js';
 import { ResultStore } from './result-store.js';
+import {
+  appendRunHistory,
+  buildRunTrend,
+  calculateRunMetrics,
+  getLatestBaseline,
+  readRunHistory,
+} from './run-metrics.js';
 
 type AuditJob = {
   url: string;
@@ -24,6 +31,9 @@ export type RunAuditResult = {
   run: AuditRun;
   outDir: string;
   incrementalResultFilePath: string;
+  historyFilePath: string;
+  metrics: RunMetrics;
+  trend: RunTrend;
 };
 
 export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult> {
@@ -79,9 +89,32 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
       results,
     };
 
+    const metrics = calculateRunMetrics(run);
+    const historyFilePath = path.resolve(outDir, '..', 'history.ndjson');
+    const history = await readRunHistory(historyFilePath);
+    const baseline = getLatestBaseline(history, {
+      baseUrl: run.baseUrl,
+      siteName: run.siteName,
+    });
+    const trend = buildRunTrend(metrics, baseline?.metrics, baseline?.runId);
+    const runId = path.basename(outDir);
+
     await writeFile(path.join(outDir, 'result.json'), JSON.stringify(run, null, 2), 'utf8');
-    await writeHtmlReport(run, outDir);
-    await writeIraMarkdown(run, outDir);
+    await writeFile(
+      path.join(outDir, 'trend.json'),
+      JSON.stringify({ runId, metrics, trend }, null, 2),
+      'utf8',
+    );
+    await writeHtmlReport(run, outDir, metrics, trend);
+    await writeIraMarkdown(run, outDir, metrics, trend);
+    await appendRunHistory(historyFilePath, {
+      runId,
+      siteName: run.siteName,
+      baseUrl: run.baseUrl,
+      generatedAt: run.generatedAt,
+      outDir,
+      metrics,
+    });
 
     if (aiSummaryProvider) {
       try {
@@ -101,6 +134,9 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
       run,
       outDir,
       incrementalResultFilePath: resultStore.filePath,
+      historyFilePath,
+      metrics,
+      trend,
     };
   } finally {
     await browser.close();

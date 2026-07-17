@@ -93,3 +93,19 @@ export type AuditRun = {
   config: AuditConfig;
   results: PageAudit[];
 };
+
+export type RunMetrics = {
+  violations: number;
+  needsReview: number;
+  technicalErrors: number;
+  critical: number;
+  serious: number;
+  moderate: number;
+  minor: number;
+};
+
+export type RunTrend = {
+  hasBaseline: boolean;
+  baselineRunId?: string;
+  delta: RunMetrics;
+};

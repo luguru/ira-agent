@@ -1,8 +1,13 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { AuditRun, Finding } from './types.js';
+import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
 
-export async function writeHtmlReport(run: AuditRun, outDir: string): Promise<void> {
+export async function writeHtmlReport(
+  run: AuditRun,
+  outDir: string,
+  metrics: RunMetrics,
+  trend: RunTrend,
+): Promise<void> {
   const findings = run.results.flatMap((result) => result.findings);
   const violations = findings.filter((finding) => finding.status === 'violation');
   const needsReview = findings.filter((finding) => finding.status === 'needs-review');
@@ -183,6 +188,11 @@ export async function writeHtmlReport(run: AuditRun, outDir: string): Promise<vo
       </table>
     </section>
 
+    <section aria-labelledby="tendencia">
+      <h2 id="tendencia">Tendencia respecto al baseline</h2>
+      ${renderTrendTable(metrics, trend)}
+    </section>
+
     <section aria-labelledby="criterios">
       <h2 id="criterios">Resultados por criterio WCAG detectado</h2>
       ${renderCriterionTable(byCriterion)}
@@ -207,6 +217,49 @@ export async function writeHtmlReport(run: AuditRun, outDir: string): Promise<vo
 </html>`;
 
   await writeFile(path.join(outDir, 'report.html'), html, 'utf8');
+}
+
+function renderTrendTable(metrics: RunMetrics, trend: RunTrend): string {
+  const rows = [
+    renderTrendRow('Incidencias automáticas', metrics.violations, trend.delta.violations),
+    renderTrendRow('Requieren revisión', metrics.needsReview, trend.delta.needsReview),
+    renderTrendRow('Errores técnicos', metrics.technicalErrors, trend.delta.technicalErrors),
+    renderTrendRow('Impacto crítico', metrics.critical, trend.delta.critical),
+    renderTrendRow('Impacto serio', metrics.serious, trend.delta.serious),
+    renderTrendRow('Impacto moderado', metrics.moderate, trend.delta.moderate),
+    renderTrendRow('Impacto menor', metrics.minor, trend.delta.minor),
+  ].join('');
+
+  const baseline = trend.hasBaseline
+    ? `<p>Baseline usado: <code>${escapeHtml(trend.baselineRunId ?? '')}</code>.</p>`
+    : '<p>Sin baseline previo para este sitio. Los deltas se muestran a 0.</p>';
+
+  return `${baseline}<table>
+    <thead>
+      <tr>
+        <th scope="col">Métrica</th>
+        <th scope="col">Actual</th>
+        <th scope="col">Delta</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderTrendRow(label: string, current: number, delta: number): string {
+  return `<tr>
+    <th scope="row">${escapeHtml(label)}</th>
+    <td>${current}</td>
+    <td>${escapeHtml(formatDelta(delta))}</td>
+  </tr>`;
+}
+
+function formatDelta(value: number): string {
+  if (value > 0) {
+    return `+${value}`;
+  }
+
+  return String(value);
 }
 
 function renderCriterionTable(groups: Map<string, Finding[]>): string {

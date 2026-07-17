@@ -36,7 +36,14 @@ async function main(): Promise<void> {
     aiSummaryProvider: createAiSummaryProvider(),
   });
 
-  printSummary(execution.run, execution.outDir, execution.incrementalResultFilePath);
+  printSummary(
+    execution.run,
+    execution.outDir,
+    execution.incrementalResultFilePath,
+    execution.historyFilePath,
+    execution.metrics,
+    execution.trend,
+  );
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -75,24 +82,41 @@ function printSummary(
   run: import('./types.js').AuditRun,
   outDir: string,
   incrementalResultFilePath: string,
+  historyFilePath: string,
+  metrics: import('./types.js').RunMetrics,
+  trend: import('./types.js').RunTrend,
 ): void {
-  const findings = run.results.flatMap((result) => result.findings);
-  const violations = findings.filter((finding) => finding.status === 'violation');
-  const needsReview = findings.filter((finding) => finding.status === 'needs-review');
-  const technicalErrors = run.results.filter((result) => !result.ok);
-
   console.log('\nAnálisis finalizado');
   console.log('------------------');
   console.log(`URLs descubiertas: ${run.pagesDiscovered}`);
   console.log(`Análisis ejecutados: ${run.pagesAnalyzed}`);
-  console.log(`Incidencias automáticas: ${violations.length}`);
-  console.log(`Requieren revisión: ${needsReview.length}`);
-  console.log(`Errores técnicos: ${technicalErrors.length}`);
+  console.log(`Incidencias automáticas: ${metrics.violations}`);
+  console.log(`Requieren revisión: ${metrics.needsReview}`);
+  console.log(`Errores técnicos: ${metrics.technicalErrors}`);
+
+  if (trend.hasBaseline) {
+    console.log('');
+    console.log(`Comparativa con baseline (${trend.baselineRunId}):`);
+    console.log(`Delta incidencias: ${formatDelta(trend.delta.violations)}`);
+    console.log(`Delta revisión: ${formatDelta(trend.delta.needsReview)}`);
+    console.log(`Delta errores técnicos: ${formatDelta(trend.delta.technicalErrors)}`);
+  }
+
   console.log('');
   console.log(`JSON: ${path.join(outDir, 'result.json')}`);
+  console.log(`Trend JSON: ${path.join(outDir, 'trend.json')}`);
   console.log(`Incremental NDJSON: ${incrementalResultFilePath}`);
+  console.log(`Histórico global: ${historyFilePath}`);
   console.log(`HTML: ${path.join(outDir, 'report.html')}`);
   console.log(`IRA Markdown: ${path.join(outDir, 'informe-ira-automatico.md')}`);
+}
+
+function formatDelta(value: number): string {
+  if (value > 0) {
+    return `+${value}`;
+  }
+
+  return String(value);
 }
 
 try {

@@ -1,8 +1,13 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { AuditRun, Finding } from './types.js';
+import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
 
-export async function writeIraMarkdown(run: AuditRun, outDir: string): Promise<void> {
+export async function writeIraMarkdown(
+  run: AuditRun,
+  outDir: string,
+  metrics: RunMetrics,
+  trend: RunTrend,
+): Promise<void> {
   const findings = run.results.flatMap((result) => result.findings);
   const violations = findings.filter((finding) => finding.status === 'violation');
   const needsReview = findings.filter((finding) => finding.status === 'needs-review');
@@ -63,11 +68,15 @@ Este informe no equivale a una auditoría manual completa ni a una declaración 
 
 ${renderCriteria(criteria)}
 
-## 6. Patrones principales detectados
+## 6. Tendencia respecto al baseline
+
+${renderTrend(metrics, trend)}
+
+## 7. Patrones principales detectados
 
 ${renderTopRules(topRules)}
 
-## 7. Recomendaciones iniciales
+## 8. Recomendaciones iniciales
 
 A partir de los resultados automáticos, se recomienda:
 
@@ -77,7 +86,7 @@ A partir de los resultados automáticos, se recomienda:
 4. Complementar este informe con pruebas de teclado, lector de pantalla y revisión de estados dinámicos.
 5. Reejecutar el análisis tras cada bloque de correcciones para comprobar regresiones.
 
-## 8. Detalle técnico
+## 9. Detalle técnico
 
 El detalle completo de incidencias se encuentra en:
 
@@ -87,6 +96,32 @@ El detalle completo de incidencias se encuentra en:
 `;
 
   await writeFile(path.join(outDir, 'informe-ira-automatico.md'), content, 'utf8');
+}
+
+function renderTrend(metrics: RunMetrics, trend: RunTrend): string {
+  const baseline = trend.hasBaseline
+    ? `Baseline usado: ${trend.baselineRunId}`
+    : 'Sin baseline previo para este sitio. Los deltas se muestran a 0.';
+
+  return `${baseline}
+
+| Métrica | Actual | Delta |
+|---|---:|---:|
+| Incidencias automáticas | ${metrics.violations} | ${formatDelta(trend.delta.violations)} |
+| Requieren revisión | ${metrics.needsReview} | ${formatDelta(trend.delta.needsReview)} |
+| Errores técnicos | ${metrics.technicalErrors} | ${formatDelta(trend.delta.technicalErrors)} |
+| Impacto crítico | ${metrics.critical} | ${formatDelta(trend.delta.critical)} |
+| Impacto serio | ${metrics.serious} | ${formatDelta(trend.delta.serious)} |
+| Impacto moderado | ${metrics.moderate} | ${formatDelta(trend.delta.moderate)} |
+| Impacto menor | ${metrics.minor} | ${formatDelta(trend.delta.minor)} |`;
+}
+
+function formatDelta(value: number): string {
+  if (value > 0) {
+    return `+${value}`;
+  }
+
+  return String(value);
 }
 
 function getCriteriaSummary(findings: Finding[]): Array<{
