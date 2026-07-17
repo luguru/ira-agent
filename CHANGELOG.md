@@ -6,6 +6,33 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-17
+
+### Changed
+- Reporte HTML (UX/UI):
+	- El encabezado del informe adopta una estructura visual mas clara con metadatos de base y fecha.
+	- El nombre del sitio mostrado en encabezado y Alcance prioriza el titulo real detectado durante auditoria (`<title>`), con fallback a `h1` y finalmente a `siteName`.
+	- Los criterios WCAG ahora se muestran como enlaces a referencia oficial W3C en el detalle y en la tabla por criterio.
+	- La recomendacion muestra enlaces de referencia reales y clicables (apertura en nueva pestana).
+	- Las fechas de gestion de incidencia pasan a modelo automatico por estado: se elimina el datepicker de validacion y se incorporan fechas fijas de deteccion, reapertura y validacion segun transiciones de estado.
+	- La fecha visible de deteccion se normaliza a formato espanol `dd/mm/yyyy`.
+
+- Motor y salida de ejecucion:
+	- El identificador de carpeta de cada ejecucion en `runs/` incluye prefijo del host auditado antes del timestamp.
+
+- Localizacion y contenido tecnico:
+	- Se amplia la localizacion de mensajes tecnicos en recomendacion/evidencia para cubrir frases dinamicas frecuentes de axe-core.
+	- Se corrige duplicado de lineas tecnicas repetidas en recomendacion/evidencia mediante deduplicacion de contenido.
+
+### Fixed
+- Reporte HTML (trazabilidad):
+	- Se evita corrupcion de terminos tecnicos como `aria-label` durante la traduccion.
+	- Se corrigen casos donde recomendaciones quedaban parcialmente en ingles (por ejemplo, mensajes de gradientes de fondo).
+
+### Added
+- Tests y calidad:
+	- Cobertura adicional para enlaces WCAG, enlaces de referencia, formato de fechas, runId con prefijo de host y nueva logica de fechas por estado.
+
 ## [0.2.0] - 2026-07-17
 
 ### Added

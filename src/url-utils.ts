@@ -101,8 +101,27 @@ export function shouldVisitUrl(urlString: string, config: AuditConfig): boolean 
   }
 }
 
-export function getSafeRunId(): string {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+export function getSafeRunId(baseUrl: string): string {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+  try {
+    const url = new URL(baseUrl);
+    const host = url.hostname
+      .toLowerCase()
+      .replace(/\./g, '-')
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/[.-]{2,}/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+
+    if (host) {
+      return `${host}_${timestamp}`;
+    }
+  } catch {
+    // Si la URL no se puede parsear, mantenemos un id solo por fecha.
+  }
+
+  return timestamp;
 }
 
 function hasSkippedExtension(pathname: string): boolean {

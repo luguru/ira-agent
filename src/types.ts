@@ -76,6 +76,7 @@ export type FindingCounts = {
 export type PageAudit = {
   url: string;
   title: string;
+  h1?: string;
   viewport: string;
   state: string;
   ok: boolean;

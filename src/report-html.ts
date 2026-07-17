@@ -10,6 +10,7 @@ export async function writeHtmlReport(
   metrics: RunMetrics,
   trend: RunTrend,
 ): Promise<void> {
+  const auditedSiteLabel = resolveAuditedSiteLabel(run);
   const findings = run.results.flatMap((result) => result.findings);
   const violations = findings.filter((finding) => finding.status === 'violation');
   const needsReview = findings.filter((finding) => finding.status === 'needs-review');
@@ -28,9 +29,16 @@ export async function writeHtmlReport(
   <script defer src="report.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Informe automático de accesibilidad</h1>
-    <p>${escapeHtml(run.siteName)}</p>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <p class="report-eyebrow">IRA · Informe automático</p>
+      <h1>Informe automático de accesibilidad</h1>
+      <p class="report-site-name">${escapeHtml(auditedSiteLabel)}</p>
+      <div class="report-header-meta" role="list" aria-label="Metadatos del informe">
+        <span class="header-chip" role="listitem">Base: ${escapeHtml(run.baseUrl)}</span>
+        <span class="header-chip" role="listitem">Fecha: ${escapeHtml(formatDateEs(run.generatedAt))}</span>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -75,7 +83,7 @@ export async function writeHtmlReport(
         <tbody>
           <tr>
             <th scope="row">Sitio</th>
-            <td>${escapeHtml(run.siteName)}</td>
+            <td>${escapeHtml(auditedSiteLabel)}</td>
           </tr>
           <tr>
             <th scope="row">URL base</th>
@@ -186,7 +194,7 @@ function renderCriterionTable(groups: Map<string, Finding[]>): string {
       const needsReview = findings.filter((finding) => finding.status === 'needs-review').length;
 
       return `<tr>
-        <th scope="row">${escapeHtml(criterion)}</th>
+        <th scope="row">${renderWcagCriterionLabel(criterion, 'criteria-link')}</th>
         <td>${violations}</td>
         <td>${needsReview}</td>
         <td>${escapeHtml([...new Set(findings.map((finding) => finding.ruleId))].join(', '))}</td>
@@ -283,7 +291,7 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
   const cards = findings
     .map((finding, index) => {
       const incidentId = formatIncidentId(index + 1);
-      const wcag = finding.wcag.length > 0 ? finding.wcag.join(', ') : 'Sin mapeo';
+      const wcag = renderWcagCriteria(finding.wcag);
       const selector = finding.selector || '-';
       const impact = finding.impact ?? 'sin impacto';
       const impactLabel = formatImpactLabel(finding.impact);
@@ -297,7 +305,8 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
       const evidencia = buildEvidence(finding, selector);
       const resultadoEsperado = buildExpectedOutcome(finding.help);
       const recomendacion = buildRecommendation(finding.message, finding.helpUrl);
-      const fechaDeteccion = formatDateOnly(detectedAt);
+      const fechaDeteccionIso = formatDateIso(detectedAt);
+      const fechaDeteccion = formatDateEs(detectedAt);
       const panelId = `panel-${incidentId}`;
       const toggleId = `toggle-${incidentId}`;
 
@@ -327,7 +336,7 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
           <div class="finding-meta finding-fields-grid">
             <div class="meta-block">
               <span class="meta-label">WCAG</span>
-              <span class="meta-value">${escapeHtml(wcag)}</span>
+              <span class="meta-value">${wcag}</span>
             </div>
             <div class="meta-block">
               <span class="meta-label">Nivel WCAG</span>
@@ -358,7 +367,7 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
             </div>
             <div class="meta-block">
               <span class="meta-label">Recomendación</span>
-              <span class="meta-value">${escapeHtml(recomendacion)}</span>
+              <span class="meta-value">${renderRecommendation(recomendacion)}</span>
             </div>
             <div class="meta-block meta-block-wide">
               <span class="meta-label">Evidencia</span>
@@ -370,14 +379,18 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
                 ${renderSelectOptions(OWNER_OPTIONS, responsable)}
               </select>
             </label>
-            <div class="meta-block">
+            <div class="meta-block" data-role="detected-date-block">
               <span class="meta-label">Fecha de detección</span>
-              <span class="meta-value">${escapeHtml(fechaDeteccion)}</span>
+              <span class="meta-value" data-role="detected-date-value" data-iso-date="${escapeHtml(fechaDeteccionIso)}">${escapeHtml(fechaDeteccion)}</span>
             </div>
-            <label class="meta-block meta-block-editable">
+            <div class="meta-block" data-role="reopened-date-block" hidden>
+              <span class="meta-label">Fecha de reapertura</span>
+              <span class="meta-value" data-role="reopened-date-value"></span>
+            </div>
+            <div class="meta-block" data-role="validation-date-block" hidden>
               <span class="meta-label">Fecha de validación</span>
-              <input class="incident-input" data-field="validation-date" name="validacion-${escapeHtml(incidentId)}" type="date" value="">
-            </label>
+              <span class="meta-value" data-role="validation-date-value"></span>
+            </div>
             <div class="meta-block meta-block-placeholder" aria-hidden="true"></div>
           </div>
         </div>
@@ -510,8 +523,12 @@ function renderFindingsLegend(): string {
             <dd>Fecha en la que se registró el hallazgo durante la auditoría.</dd>
           </div>
           <div class="legend-item">
+            <dt>Fecha de reapertura</dt>
+            <dd>Fecha en la que una incidencia validada o cerrada vuelve a abrirse por regresión o incidencia persistente.</dd>
+          </div>
+          <div class="legend-item">
             <dt>Fecha de validación</dt>
-            <dd>Fecha de cierre y verificación final, si aplica. Campo editable.</dd>
+            <dd>Fecha de cierre y verificación final cuando el estado pasa a validado.</dd>
           </div>
         </dl>
       </section>
@@ -631,6 +648,32 @@ function formatWorkflowStatusLabel(value: string): string {
   return match?.label ?? 'Estado';
 }
 
+function renderWcagCriteria(criteria: string[]): string {
+  if (criteria.length === 0) {
+    return 'Sin mapeo';
+  }
+
+  return criteria.map((criterion) => renderWcagCriterionLabel(criterion, 'wcag-link')).join(', ');
+}
+
+function renderWcagCriterionLabel(criterion: string, cssClass: string): string {
+  if (!isWcagCriterionCode(criterion)) {
+    return escapeHtml(criterion);
+  }
+
+  const href = getWcagCriterionUrl(criterion);
+
+  return `<a class="${cssClass}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(criterion)}</a>`;
+}
+
+function isWcagCriterionCode(value: string): boolean {
+  return /^\d+\.\d+\.\d+$/.test(value.trim());
+}
+
+function getWcagCriterionUrl(criterion: string): string {
+  return `https://www.w3.org/WAI/WCAG22/quickref/?versions=2.2&q=${encodeURIComponent(criterion)}`;
+}
+
 function inferWcagLevel(tags: string[]): string {
   const normalized = tags.map((tag) => tag.toLowerCase());
 
@@ -717,7 +760,46 @@ function buildRecommendation(message: string, helpUrl: string): string {
     return recommendation;
   }
 
-  return `${recommendation} Referencia: ${helpUrl}`;
+  return `${recommendation}\nReferencia: ${helpUrl}`;
+}
+
+function renderRecommendation(value: string): string {
+  const lines = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0) {
+    return 'Sin detalle técnico';
+  }
+
+  const rendered = lines.map((line) => {
+    const match = line.match(/^Referencia:\s*(https?:\/\/\S+)$/i);
+
+    if (!match || !match[1]) {
+      return escapeHtml(line);
+    }
+
+    const href = match[1];
+
+    return `Referencia: <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(href)}</a>`;
+  });
+
+  return rendered.join('<br>');
+}
+
+function resolveAuditedSiteLabel(run: AuditRun): string {
+  const firstOk = run.results.find((result) => result.ok);
+
+  if (firstOk?.title?.trim()) {
+    return firstOk.title.trim();
+  }
+
+  if (firstOk?.h1?.trim()) {
+    return firstOk.h1.trim();
+  }
+
+  return run.siteName;
 }
 
 function inferOwnerArea(finding: Finding): string {
@@ -746,7 +828,7 @@ function inferOwnerArea(finding: Finding): string {
   return 'frontend';
 }
 
-function formatDateOnly(value: string): string {
+function formatDateIso(value: string): string {
   const date = new Date(value);
 
   if (!Number.isNaN(date.getTime())) {
@@ -754,6 +836,13 @@ function formatDateOnly(value: string): string {
   }
 
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatDateEs(value: string): string {
+  const iso = formatDateIso(value);
+  const [year, month, day] = iso.split('-');
+
+  return `${day}/${month}/${year}`;
 }
 
 function localizeTechnicalText(value: string): string {
@@ -771,11 +860,41 @@ function localizeTechnicalText(value: string): string {
 
   let localized = raw;
 
+  for (const [pattern, replacement] of TECHNICAL_PHRASE_REPLACEMENTS) {
+    localized = localized.replace(pattern, replacement);
+  }
+
   for (const [pattern, replacement] of TECHNICAL_REPLACEMENTS) {
     localized = localized.replace(pattern, replacement);
   }
 
-  return localized;
+  return dedupeRepeatedTechnicalLines(localized);
+}
+
+function dedupeRepeatedTechnicalLines(value: string): string {
+  const lines = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  const uniqueLines: string[] = [];
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const key = line
+      .toLowerCase()
+      .replace(/[.。]+$/g, '')
+      .trim();
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    uniqueLines.push(line);
+  }
+
+  return uniqueLines.join('\n');
 }
 
 const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
@@ -795,25 +914,63 @@ const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
   ['Provide accessible name', 'Proporciona un nombre accesible.'],
   ['Increase focus contrast', 'Aumenta el contraste del foco.'],
   ['Review page landmarks manually', 'Revisa manualmente las regiones landmark de la página.'],
+  [
+    'Elements must only use permitted ARIA attributes',
+    'Los elementos solo deben usar atributos ARIA permitidos.',
+  ],
 ]);
 
-const TECHNICAL_REPLACEMENTS: Array<[RegExp, string]> = [
-  [/\bmust\b/gi, 'debe'],
-  [/\bshould\b/gi, 'debería'],
-  [/\brequired\b/gi, 'requerido'],
-  [/\bmanual verification\b/gi, 'verificación manual'],
-  [/\baccessible name\b/gi, 'nombre accesible'],
-  [/\bcontrast ratio\b/gi, 'relación de contraste'],
-  [/\bfocus\b/gi, 'foco'],
-  [/\belements\b/gi, 'elementos'],
-  [/\belement\b/gi, 'elemento'],
-  [/\blinks\b/gi, 'enlaces'],
-  [/\blink\b/gi, 'enlace'],
-  [/\blabels\b/gi, 'etiquetas'],
-  [/\blabel\b/gi, 'etiqueta'],
-  [/\bpage\b/gi, 'página'],
-  [/\bcontent\b/gi, 'contenido'],
+const TECHNICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/Fix any of the following:\s*/gi, 'Corrige cualquiera de los siguientes puntos:\n'],
+  [/Fix all of the following:\s*/gi, 'Corrige todos los siguientes puntos:\n'],
+  [
+    /Element has insufficient color contrast of\s*([0-9]+(?:\.[0-9]+)?)/gi,
+    'El elemento tiene una relación de contraste insuficiente de $1',
+  ],
+  [
+    /Expected contrast ratio of\s*([0-9]+(?:\.[0-9]+)?\s*:\s*[0-9]+)/gi,
+    'Se espera una relación de contraste de $1',
+  ],
+  [
+    /Form element does not have an associated label/gi,
+    'El elemento de formulario no tiene una etiqueta asociada',
+  ],
+  [/Form elements must have labels/gi, 'Los elementos de formulario deben tener etiquetas'],
+  [/Links must have discernible text/gi, 'Los enlaces deben tener un texto identificable'],
+  [/Link has no text/gi, 'El enlace no tiene texto'],
+  [
+    /Element does not have inner text that is visible to screen readers/gi,
+    'El elemento no tiene texto interno visible para lectores de pantalla',
+  ],
+  [
+    /Elements must only use permitted ARIA attributes/gi,
+    'Los elementos solo deben usar atributos ARIA permitidos',
+  ],
+  [
+    /aria-label attribute is not well supported on a div with no valid role attribute\.?/gi,
+    'El atributo aria-label no está bien soportado en un div sin un rol válido.',
+  ],
+  [
+    /Element'?s background color could not be determined due to a background gradient\.?/gi,
+    'No se pudo determinar el color de fondo del elemento debido a un degradado de fondo.',
+  ],
+  [
+    /Element'?s foreground color could not be determined due to a background gradient\.?/gi,
+    'No se pudo determinar el color de primer plano del elemento debido a un degradado de fondo.',
+  ],
+  [/Text is not within a landmark element/gi, 'El texto no está dentro de un elemento landmark'],
+  [
+    /All page content should be contained by landmarks/gi,
+    'Todo el contenido de la página debería estar contenido por regiones landmark',
+  ],
+  [/Focus indicator should be visible/gi, 'El indicador de foco debería ser visible'],
+  [/Manual verification required/gi, 'Se requiere verificación manual'],
+  [/Provide accessible name/gi, 'Proporciona un nombre accesible'],
+  [/Increase focus contrast/gi, 'Aumenta el contraste del foco'],
+  [/Review page landmarks manually/gi, 'Revisa manualmente las regiones landmark de la página'],
 ];
+
+const TECHNICAL_REPLACEMENTS: Array<[RegExp, string]> = [[/[ \t]{2,}/g, ' ']];
 
 const INCIDENT_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'nuevo', label: 'Nuevo' },

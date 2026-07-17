@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { AuditConfig } from '../src/types.js';
-import { normalizeUrl, shouldVisitUrl } from '../src/url-utils.js';
+import { getSafeRunId, normalizeUrl, shouldVisitUrl } from '../src/url-utils.js';
 
 const baseConfig: AuditConfig = {
   siteName: 'Test',
@@ -45,4 +45,10 @@ test('shouldVisitUrl descarta origen externo, excluidos y binarios', () => {
 
 test('shouldVisitUrl permite URL interna incluida', () => {
   assert.equal(shouldVisitUrl('https://example.com/blog/post', baseConfig), true);
+});
+
+test('getSafeRunId incluye prefijo del host antes de la fecha', () => {
+  const runId = getSafeRunId('https://www.ejemplo.es');
+
+  assert.match(runId, /^www-ejemplo-es_\d{4}-\d{2}-\d{2}T/);
 });

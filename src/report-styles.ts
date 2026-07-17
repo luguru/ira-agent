@@ -90,10 +90,53 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
 }
 
 @layer layout {
-  header {
+  .report-header {
     background: linear-gradient(135deg, #111827, #1f2937);
     color: #fff;
     padding: clamp(1.25rem, 2vw + 1rem, 2rem);
+    border-bottom: 1px solid color-mix(in srgb, #ffffff 30%, #111827);
+  }
+
+  .report-header-inner {
+    max-inline-size: 1200px;
+    margin-inline: auto;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .report-eyebrow {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: color-mix(in srgb, #ffffff 74%, #a5b4fc);
+  }
+
+  .report-site-name {
+    margin: 0;
+    font-size: clamp(1rem, 0.8vw + 0.85rem, 1.2rem);
+    font-weight: 650;
+    color: color-mix(in srgb, #ffffff 94%, #93c5fd);
+  }
+
+  .report-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.25rem;
+  }
+
+  .header-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, #ffffff 28%, #1e3a8a);
+    border-radius: var(--radius-pill);
+    padding: 0.12rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: #e5edff;
+    background: color-mix(in srgb, #0f172a 68%, #1d4ed8);
   }
 
   main {
@@ -687,6 +730,29 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     color: var(--text-strong);
     font-size: 0.92rem;
     overflow-wrap: anywhere;
+  }
+
+  .meta-value a,
+  .criteria-link,
+  .wcag-link {
+    color: #1d4ed8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 650;
+  }
+
+  .meta-value a:hover,
+  .criteria-link:hover,
+  .wcag-link:hover {
+    color: #1e40af;
+  }
+
+  .meta-value a:focus-visible,
+  .criteria-link:focus-visible,
+  .wcag-link:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, white);
+    outline-offset: 2px;
+    border-radius: 0.2rem;
   }
 
   .meta-value-pre {

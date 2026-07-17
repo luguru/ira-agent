@@ -89,7 +89,9 @@ npm run audit -- --url https://example.com --maxPages 3 --maxDepth 1
 
 ## Salida de cada ejecucion
 
-Cada ejecucion crea una carpeta timestamp en runs/. Ejemplo: runs/2026-07-17T07-20-10-268Z
+Cada ejecucion crea una carpeta en `runs/` con prefijo del host y timestamp.
+
+Ejemplo: `runs/www-ejemplo-es_2026-07-17T07-20-10-268Z`
 
 Archivos generados:
 
@@ -107,12 +109,17 @@ Comportamiento actual de la ficha IRA:
 - Cada incidencia funciona como acordeon (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
 - El estado seleccionado se muestra en cabecera como chip y se edita dentro del bloque de metadatos.
 - La cuadricula interna se organiza en filas para facilitar lectura de analisis y seguimiento.
+- El nombre del sitio mostrado en el encabezado y en Alcance prioriza el titulo real detectado (`<title>`), con fallback a `h1` y finalmente a `siteName`.
+- Los criterios WCAG aparecen enlazados a su referencia oficial en W3C (nueva pestaña).
+- La recomendacion incluye referencia clicable cuando existe `helpUrl`.
+- La Fecha de deteccion siempre es fija.
+- La Fecha de reapertura aparece automaticamente al pasar el estado a `reabierto` y queda registrada.
+- La Fecha de validacion aparece automaticamente al pasar el estado a `validado`.
 
 Campos editables en el reporte:
 
 - Estado (select)
 - Responsable (select)
-- Fecha de validacion (date)
 
 Nota: estas ediciones se guardan en `localStorage` del navegador para facilitar seguimiento local del equipo.
 

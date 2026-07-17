@@ -33,12 +33,14 @@ export const REPORT_JS = `(() => {
 
       const statusInput = card.querySelector('[data-field="workflow-status"]');
       const ownerInput = card.querySelector('[data-field="owner"]');
-      const validationInput = card.querySelector('[data-field="validation-date"]');
+      const validationValue = card.querySelector('[data-role="validation-date-value"]');
+      const reopenedValue = card.querySelector('[data-role="reopened-date-value"]');
 
       snapshot[cardId] = {
         workflowStatus: statusInput ? statusInput.value : '',
         owner: ownerInput ? ownerInput.value : '',
-        validationDate: validationInput ? validationInput.value : '',
+        validationDate: validationValue ? validationValue.getAttribute('data-iso-date') || '' : '',
+        reopenedDate: reopenedValue ? reopenedValue.getAttribute('data-iso-date') || '' : '',
       };
     }
 
@@ -69,6 +71,8 @@ export const REPORT_JS = `(() => {
     if (statusLabelNode) {
       statusLabelNode.textContent = getStatusLabel(statusInput.value);
     }
+
+    syncDateBlocks(card, statusInput.value);
   };
 
   const applyFilters = () => {
@@ -123,7 +127,8 @@ export const REPORT_JS = `(() => {
 
       const statusInput = card.querySelector('[data-field="workflow-status"]');
       const ownerInput = card.querySelector('[data-field="owner"]');
-      const validationInput = card.querySelector('[data-field="validation-date"]');
+      const validationValue = card.querySelector('[data-role="validation-date-value"]');
+      const reopenedValue = card.querySelector('[data-role="reopened-date-value"]');
 
       if (statusInput && saved.workflowStatus) {
         statusInput.value = saved.workflowStatus;
@@ -133,8 +138,12 @@ export const REPORT_JS = `(() => {
         ownerInput.value = saved.owner;
       }
 
-      if (validationInput && saved.validationDate) {
-        validationInput.value = saved.validationDate;
+      if (validationValue && saved.validationDate) {
+        setDateValue(validationValue, saved.validationDate);
+      }
+
+      if (reopenedValue && saved.reopenedDate) {
+        setDateValue(reopenedValue, saved.reopenedDate);
       }
 
       syncCardState(card);
@@ -143,13 +152,21 @@ export const REPORT_JS = `(() => {
 
   const wireCardInputs = () => {
     for (const card of cards) {
-      const editableInputs = card.querySelectorAll('[data-field]');
+      const statusInput = card.querySelector('[data-field="workflow-status"]');
+      const ownerInput = card.querySelector('[data-field="owner"]');
 
-      for (const input of editableInputs) {
-        input.addEventListener('change', () => {
+      if (statusInput) {
+        statusInput.addEventListener('change', () => {
+          handleStatusDateTransition(card, statusInput.value);
           syncCardState(card);
           saveEdits();
           applyFilters();
+        });
+      }
+
+      if (ownerInput) {
+        ownerInput.addEventListener('change', () => {
+          saveEdits();
         });
       }
     }
@@ -264,6 +281,90 @@ export const REPORT_JS = `(() => {
     };
 
     return labelMap[status] || 'Estado';
+  }
+
+  function handleStatusDateTransition(card, nextStatus) {
+    const validationValue = card.querySelector('[data-role="validation-date-value"]');
+    const reopenedValue = card.querySelector('[data-role="reopened-date-value"]');
+
+    if (nextStatus === 'validado' && validationValue) {
+      setDateValue(validationValue, getTodayIso());
+    }
+
+    if (nextStatus === 'reabierto' && reopenedValue) {
+      setDateValue(reopenedValue, getTodayIso());
+    }
+  }
+
+  function syncDateBlocks(card, currentStatus) {
+    const validationBlock = card.querySelector('[data-role="validation-date-block"]');
+    const validationValue = card.querySelector('[data-role="validation-date-value"]');
+    const reopenedBlock = card.querySelector('[data-role="reopened-date-block"]');
+    const reopenedValue = card.querySelector('[data-role="reopened-date-value"]');
+
+    const hasValidationDate = Boolean(validationValue && validationValue.getAttribute('data-iso-date'));
+    const hasReopenedDate = Boolean(reopenedValue && reopenedValue.getAttribute('data-iso-date'));
+
+    if (reopenedBlock) {
+      reopenedBlock.hidden = !hasReopenedDate;
+    }
+
+    if (validationBlock) {
+      validationBlock.hidden = !(currentStatus === 'validado' && hasValidationDate);
+    }
+  }
+
+  function setDateValue(node, isoDate) {
+    const normalizedIso = normalizeIsoDate(isoDate);
+
+    if (!normalizedIso) {
+      return;
+    }
+
+    node.setAttribute('data-iso-date', normalizedIso);
+    node.textContent = formatDateEs(normalizedIso);
+  }
+
+  function normalizeIsoDate(value) {
+    if (!value || typeof value !== 'string') {
+      return '';
+    }
+
+    const direct = value.trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(direct)) {
+      return direct;
+    }
+
+    const parsed = new Date(direct);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+
+    return toIsoDate(parsed);
+  }
+
+  function toIsoDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return year + '-' + month + '-' + day;
+  }
+
+  function getTodayIso() {
+    return toIsoDate(new Date());
+  }
+
+  function formatDateEs(isoDate) {
+    const parts = isoDate.split('-');
+
+    if (parts.length !== 3) {
+      return isoDate;
+    }
+
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
   }
 })();
 `;

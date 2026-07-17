@@ -51,7 +51,8 @@ export function createMockAuditRun(): AuditRun {
             helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/color-contrast',
             selector: 'h1',
             html: '<h1>Title</h1>',
-            message: 'Fix contrast ratio',
+            message:
+              'Fix any of the following: Element has insufficient color contrast of 2.52. Expected contrast ratio of 4.5:1',
           },
           {
             url: 'https://example.com/',
@@ -64,12 +65,13 @@ export function createMockAuditRun(): AuditRun {
             wcag: ['1.3.1'],
             en301549: [],
             tags: ['wcag131'],
-            help: 'Form elements must have labels',
+            help: 'Elements must only use permitted ARIA attributes',
             description: 'Potential missing label',
-            helpUrl: 'https://dequeuniversity.com/rules/axe/4.10/label',
+            helpUrl: 'https://dequeuniversity.com/rules/axe/4.12/aria-prohibited-attr',
             selector: 'input[type="text"]',
             html: '<input type="text">',
-            message: 'Manual verification required',
+            message:
+              'Fix all of the following: aria-label attribute is not well supported on a div with no valid role attribute.',
           },
         ],
         counts: {
@@ -122,7 +124,8 @@ export function createMockAuditRun(): AuditRun {
             helpUrl: '',
             selector: '.btn',
             html: '<button class="btn">Enviar</button>',
-            message: 'Increase focus contrast',
+            message:
+              "Fix any of the following:\nElement's background color could not be determined due to a background gradient\nElement's background color could not be determined due to a background gradient",
           },
           {
             url: 'https://example.com/contact',
