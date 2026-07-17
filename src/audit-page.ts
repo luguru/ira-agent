@@ -25,6 +25,11 @@ export async function auditPage(
     await gotoAuditableState(page, url, config);
 
     const title = await page.title().catch(() => '');
+    const h1 = await page
+      .locator('h1')
+      .first()
+      .innerText({ timeout: Math.min(config.timeoutMs, 1500) })
+      .catch(() => '');
     const findings: Finding[] = [];
 
     findings.push(
@@ -57,6 +62,7 @@ export async function auditPage(
     return {
       url,
       title,
+      h1,
       viewport: viewport.name,
       state: 'initial',
       ok: true,

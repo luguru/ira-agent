@@ -24,7 +24,7 @@ async function main(): Promise<void> {
 
   validateConfig(config);
 
-  const outDir = path.resolve('runs', getSafeRunId());
+  const outDir = path.resolve('runs', getSafeRunId(config.baseUrl));
 
   console.log(`\nIniciando análisis: ${config.siteName}`);
   console.log(`URL base: ${config.baseUrl}`);
