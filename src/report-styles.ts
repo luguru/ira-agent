@@ -370,7 +370,7 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
   }
 
   .finding-card {
-    border: 1px solid var(--border);
+    border: 1px solid var(--status-border, var(--border));
     border-radius: var(--radius-md);
     background: var(--bg-surface);
     overflow: clip;
@@ -381,10 +381,201 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-xs);
-    align-items: center;
+    align-items: flex-start;
     padding: var(--space-sm) var(--space-md);
-    background: var(--bg-muted);
-    border-bottom: 1px solid var(--border-soft);
+    background: var(--status-head-bg, var(--bg-muted));
+    border-bottom: 1px solid var(--status-border-soft, var(--border-soft));
+  }
+
+  .accordion-toggle {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .accordion-toggle::after {
+    content: '▴';
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-inline-start: auto;
+    transform-origin: center;
+    transition: transform 120ms ease;
+  }
+
+  .finding-card.is-open .accordion-toggle::after {
+    transform: rotate(180deg);
+  }
+
+  .accordion-toggle:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 50%, white);
+    outline-offset: 3px;
+    border-radius: 0.4rem;
+  }
+
+  .status-icon {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--status-icon-fg, #1f2937);
+    border: 2px solid var(--status-border, var(--border));
+    background: #ffffff;
+    flex: 0 0 auto;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  }
+
+  .finding-head-main {
+    min-inline-size: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .finding-title {
+    color: var(--text-strong);
+    font-size: 0.98rem;
+    font-weight: 760;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .finding-head-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .chip-rule code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+  }
+
+  .finding-card[data-workflow-status='nuevo'] {
+    --status-border: #cbd5e1;
+    --status-border-soft: #dbe4ee;
+    --status-head-bg: #f8fafc;
+    --status-icon-fg: #334155;
+    --status-select-border: #94a3b8;
+    --status-select-bg: #f8fafc;
+    --status-select-fg: #334155;
+  }
+
+  .finding-card[data-workflow-status='confirmado'] {
+    --status-border: #93c5fd;
+    --status-border-soft: #bfdbfe;
+    --status-head-bg: #eff6ff;
+    --status-icon-fg: #1e3a8a;
+    --status-select-border: #3b82f6;
+    --status-select-bg: #dbeafe;
+    --status-select-fg: #1e3a8a;
+  }
+
+  .finding-card[data-workflow-status='pendiente-correccion'] {
+    --status-border: #fcd34d;
+    --status-border-soft: #fde68a;
+    --status-head-bg: #fffbeb;
+    --status-icon-fg: #78350f;
+    --status-select-border: #d97706;
+    --status-select-bg: #fef3c7;
+    --status-select-fg: #78350f;
+  }
+
+  .finding-card[data-workflow-status='en-curso'] {
+    --status-border: #a5b4fc;
+    --status-border-soft: #c7d2fe;
+    --status-head-bg: #eef2ff;
+    --status-icon-fg: #312e81;
+    --status-select-border: #6366f1;
+    --status-select-bg: #e0e7ff;
+    --status-select-fg: #312e81;
+  }
+
+  .finding-card[data-workflow-status='corregido'] {
+    --status-border: #6ee7b7;
+    --status-border-soft: #a7f3d0;
+    --status-head-bg: #ecfdf5;
+    --status-icon-fg: #14532d;
+    --status-select-border: #10b981;
+    --status-select-bg: #d1fae5;
+    --status-select-fg: #14532d;
+  }
+
+  .finding-card[data-workflow-status='validado'] {
+    --status-border: #34d399;
+    --status-border-soft: #6ee7b7;
+    --status-head-bg: #ecfdf5;
+    --status-icon-fg: #14532d;
+    --status-select-border: #059669;
+    --status-select-bg: #bbf7d0;
+    --status-select-fg: #14532d;
+  }
+
+  .finding-card[data-workflow-status='reabierto'] {
+    --status-border: #fda4af;
+    --status-border-soft: #fecdd3;
+    --status-head-bg: #fff1f2;
+    --status-icon-fg: #9f1239;
+    --status-select-border: #e11d48;
+    --status-select-bg: #ffe4e6;
+    --status-select-fg: #9f1239;
+  }
+
+  .finding-card[data-workflow-status='aceptado-riesgo'] {
+    --status-border: #fdba74;
+    --status-border-soft: #fed7aa;
+    --status-head-bg: #fff7ed;
+    --status-icon-fg: #9a3412;
+    --status-select-border: #ea580c;
+    --status-select-bg: #ffedd5;
+    --status-select-fg: #9a3412;
+  }
+
+  .finding-card[data-workflow-status='no-aplica'] {
+    --status-border: #d4d4d8;
+    --status-border-soft: #e4e4e7;
+    --status-head-bg: #fafafa;
+    --status-icon-fg: #3f3f46;
+    --status-select-border: #71717a;
+    --status-select-bg: #f4f4f5;
+    --status-select-fg: #3f3f46;
+  }
+
+  .finding-card[data-workflow-status='duplicado'] {
+    --status-border: #c4b5fd;
+    --status-border-soft: #ddd6fe;
+    --status-head-bg: #f5f3ff;
+    --status-icon-fg: #5b21b6;
+    --status-select-border: #8b5cf6;
+    --status-select-bg: #ede9fe;
+    --status-select-fg: #5b21b6;
+  }
+
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
   }
 
   .chip {
@@ -398,6 +589,18 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     background: var(--bg-surface);
     color: var(--text-strong);
     white-space: nowrap;
+  }
+
+  .chip-id {
+    font-weight: 700;
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  }
+
+  .chip-status-current {
+    border-color: var(--status-select-border, var(--border));
+    background: var(--status-select-bg, var(--bg-surface));
+    color: var(--status-select-fg, var(--text-strong));
+    font-weight: 700;
   }
 
   .chip.status-violation {
@@ -429,10 +632,18 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     padding: var(--space-md);
   }
 
+  .finding-body[hidden] {
+    display: none;
+  }
+
   .finding-meta {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 0.6rem;
+  }
+
+  .finding-fields-grid {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
   }
 
   .meta-block {
@@ -440,6 +651,26 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     border-radius: var(--radius-sm);
     background: var(--bg-muted);
     padding: 0.55rem 0.65rem;
+  }
+
+  .meta-block-wide {
+    grid-column: span 2;
+  }
+
+  .meta-block-full {
+    grid-column: 1 / -1;
+  }
+
+  .meta-block-placeholder {
+    border-style: dashed;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .meta-block-editable {
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
   }
 
   .meta-label {
@@ -456,6 +687,52 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     color: var(--text-strong);
     font-size: 0.92rem;
     overflow-wrap: anywhere;
+  }
+
+  .meta-value-pre {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .incident-input {
+    inline-size: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-strong);
+    font: inherit;
+    min-block-size: 2.1rem;
+    padding: 0.42rem 0.55rem;
+  }
+
+  .incident-input-status {
+    border-color: var(--status-select-border, color-mix(in srgb, var(--accent) 35%, var(--border)));
+    background-color: var(--status-select-bg, #ffffff);
+    color: var(--status-select-fg, var(--text-strong));
+    font-weight: 700;
+  }
+
+  select.incident-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #6b7280 50%),
+      linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) calc(50% - 2px),
+      calc(100% - 12px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-inline-end: 2rem;
+  }
+
+  .incident-input:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, white);
+    outline-offset: 2px;
   }
 
   .finding-panels {
@@ -497,6 +774,22 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
 }
 
 @media (max-width: 720px) {
+  .finding-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .meta-block-wide {
+    grid-column: auto;
+  }
+
+  .meta-block-full {
+    grid-column: auto;
+  }
+
+  .meta-block-placeholder {
+    display: none;
+  }
+
   .finding-head {
     padding: 0.65rem 0.8rem;
   }

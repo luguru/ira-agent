@@ -41,6 +41,27 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /<option value="serious">Crítico<\/option>/);
     assert.match(html, /<option value="moderate">Medio<\/option>/);
     assert.match(html, /<option value="minor">Bajo<\/option>/);
+    assert.match(html, /IRA-001/);
+    assert.match(html, /<span class="meta-label">Responsable<\/span>/);
+    assert.match(html, /<span class="meta-label">Fecha de validación<\/span>/);
+    assert.match(html, /type="date"/);
+    assert.match(html, /<option value="pendiente-correccion">Pendiente de corrección<\/option>/);
+    assert.match(html, /<option value="aceptado-riesgo">Aceptado con riesgo<\/option>/);
+    assert.match(html, /<option value="frontend" selected>Frontend<\/option>/);
+    assert.match(html, /class="status-icon"/);
+    assert.match(html, /class="chip chip-status-current" data-role="workflow-status-label">/);
+    assert.match(html, /class="incident-input incident-input-status"/);
+    assert.match(html, /<span class="meta-label">Nivel WCAG<\/span>/);
+    assert.match(html, /<span class="meta-label">Estado<\/span>/);
+    assert.match(html, /data-role="accordion-toggle"/);
+    assert.match(html, /aria-expanded="false"/);
+    assert.match(html, /role="region"/);
+    assert.match(html, /hidden>/);
+    assert.match(html, /class="finding-title">/);
+    assert.match(html, /◎|◆|⧖|⟳|☑|✔|↻|⚠|⊘|⧉/);
+    assert.match(html, /class="chip chip-rule"/);
+    assert.match(html, /Qué significa cada campo de la incidencia/);
+    assert.match(html, /Fecha de detección/);
     assert.match(html, /Después de abrir el menú/);
     assert.match(html, /Los elementos deben cumplir los umbrales mínimos de relación de contraste de color\./);
     assert.match(html, /Corrige la relación de contraste\./);
@@ -49,7 +70,18 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
 
     assert.match(html, /report\.css/);
     assert.match(html, /report\.js/);
+    assert.match(js, /localStorage\.setItem/);
+    assert.match(js, /getStatusIcon/);
+    assert.match(js, /wireAccordions/);
     assert.match(css, /findings-legend/);
+    assert.match(css, /incident-input/);
+    assert.match(css, /data-workflow-status='nuevo'/);
+    assert.match(css, /--status-select-bg/);
+    assert.match(css, /\.chip-status-current/);
+    assert.match(css, /\.incident-input-status/);
+    assert.match(css, /\.accordion-toggle/);
+    assert.match(css, /\.finding-body\[hidden\]/);
+    assert.match(css, /\.chip-rule code/);
     assert.match(js, /finding-filter-impact/);
   } finally {
     await rm(outDir, { recursive: true, force: true });

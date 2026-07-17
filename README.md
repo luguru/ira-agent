@@ -100,6 +100,22 @@ Archivos generados:
 - trend.json: metricas y deltas respecto al baseline
 - resumen-ia.md: solo si resumen IA esta habilitado
 
+En `report.html`, cada incidencia se presenta como ficha IRA con campos de gestion (ID, titulo, impacto, estado, WCAG, nivel, ubicacion, perfil afectado, evidencia, resultado esperado, recomendacion, responsable y fechas).
+
+Comportamiento actual de la ficha IRA:
+
+- Cada incidencia funciona como acordeon (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
+- El estado seleccionado se muestra en cabecera como chip y se edita dentro del bloque de metadatos.
+- La cuadricula interna se organiza en filas para facilitar lectura de analisis y seguimiento.
+
+Campos editables en el reporte:
+
+- Estado (select)
+- Responsable (select)
+- Fecha de validacion (date)
+
+Nota: estas ediciones se guardan en `localStorage` del navegador para facilitar seguimiento local del equipo.
+
 Ademas, se mantiene historico global en:
 
 - runs/history.ndjson

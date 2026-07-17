@@ -120,7 +120,7 @@ export async function writeHtmlReport(
     <section aria-labelledby="detalle">
       <h2 id="detalle">Detalle de incidencias</h2>
       ${renderFindingsLegend()}
-      ${renderFindingsTable(findings)}
+      ${renderFindingsTable(findings, run.generatedAt)}
     </section>
   </main>
 </body>
@@ -272,58 +272,113 @@ function renderPagesTable(run: AuditRun): string {
   </table>`;
 }
 
-function renderFindingsTable(findings: Finding[]): string {
+function renderFindingsTable(findings: Finding[], detectedAt: string): string {
   if (findings.length === 0) {
     return '<div class="findings-empty"><p>No se han detectado incidencias automáticas ni hallazgos pendientes de revisión por axe-core.</p></div>';
   }
 
   const viewports = getUniqueSortedValues(findings.map((finding) => finding.viewport));
-  const statuses = getUniqueSortedValues(findings.map((finding) => finding.status));
   const impacts = getUniqueSortedValues(findings.map((finding) => finding.impact ?? 'sin impacto'));
 
   const cards = findings
-    .map((finding) => {
+    .map((finding, index) => {
+      const incidentId = formatIncidentId(index + 1);
       const wcag = finding.wcag.length > 0 ? finding.wcag.join(', ') : 'Sin mapeo';
       const selector = finding.selector || '-';
       const impact = finding.impact ?? 'sin impacto';
       const impactLabel = formatImpactLabel(finding.impact);
+      const title = localizeTechnicalText(finding.help);
+      const workflowStatus = mapFindingStatusToWorkflowStatus(finding.status);
+      const workflowStatusLabel = formatWorkflowStatusLabel(workflowStatus);
+      const responsable = inferOwnerArea(finding);
+      const wcagLevel = inferWcagLevel(finding.tags);
+      const ubicacion = buildLocationLabel(finding);
+      const perfilAfectado = inferAffectedProfiles(finding);
+      const evidencia = buildEvidence(finding, selector);
+      const resultadoEsperado = buildExpectedOutcome(finding.help);
+      const recomendacion = buildRecommendation(finding.message, finding.helpUrl);
+      const fechaDeteccion = formatDateOnly(detectedAt);
+      const panelId = `panel-${incidentId}`;
+      const toggleId = `toggle-${incidentId}`;
 
-      return `<article class="finding-card" data-viewport="${escapeHtml(finding.viewport)}" data-status="${escapeHtml(finding.status)}" data-impact="${escapeHtml(impact)}" aria-hidden="false">
+      return `<article class="finding-card" data-incident-id="${escapeHtml(incidentId)}" data-viewport="${escapeHtml(finding.viewport)}" data-workflow-status="${escapeHtml(workflowStatus)}" data-impact="${escapeHtml(impact)}" aria-hidden="false">
         <header class="finding-head">
-          <span class="chip">${escapeHtml(finding.viewport)}</span>
-          <span class="chip ${escapeHtml(`status-${finding.status}`)}">${escapeHtml(formatStatusLabel(finding.status))}</span>
-          <span class="chip">${escapeHtml(impactLabel)}</span>
-          <span class="chip"><code>${escapeHtml(finding.ruleId)}</code></span>
-          <span class="finding-url">${escapeHtml(finding.url)}</span>
+          <button
+            id="${escapeHtml(toggleId)}"
+            class="accordion-toggle"
+            type="button"
+            data-role="accordion-toggle"
+            aria-expanded="false"
+            aria-controls="${escapeHtml(panelId)}"
+          >
+            <span class="status-icon" data-role="status-icon" aria-hidden="true">${escapeHtml(formatWorkflowStatusIcon(workflowStatus))}</span>
+            <span class="finding-head-main">
+              <span class="finding-title">${escapeHtml(title)}</span>
+              <span class="finding-head-meta">
+                <span class="chip chip-id">${escapeHtml(incidentId)}</span>
+                <span class="chip">${escapeHtml(impactLabel)}</span>
+                <span class="chip chip-rule"><code>${escapeHtml(finding.ruleId)}</code></span>
+                <span class="chip chip-status-current" data-role="workflow-status-label">${escapeHtml(workflowStatusLabel)}</span>
+              </span>
+            </span>
+          </button>
         </header>
-        <div class="finding-body">
-          <div class="finding-meta">
-            <div class="meta-block">
-              <span class="meta-label">Flujo</span>
-              <span class="meta-value">${escapeHtml(formatFlowLabel(finding.state))}</span>
-            </div>
+        <div class="finding-body" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(toggleId)}" hidden>
+          <div class="finding-meta finding-fields-grid">
             <div class="meta-block">
               <span class="meta-label">WCAG</span>
               <span class="meta-value">${escapeHtml(wcag)}</span>
             </div>
             <div class="meta-block">
-              <span class="meta-label">Selector</span>
-              <span class="meta-value"><code>${escapeHtml(selector)}</code></span>
+              <span class="meta-label">Nivel WCAG</span>
+              <span class="meta-value">${escapeHtml(wcagLevel)}</span>
+            </div>
+            <label class="meta-block meta-block-editable">
+              <span class="meta-label">Estado</span>
+              <select
+                id="estado-${escapeHtml(incidentId)}"
+                class="incident-input incident-input-status"
+                data-field="workflow-status"
+                name="estado-${escapeHtml(incidentId)}"
+              >
+                ${renderSelectOptions(INCIDENT_STATUS_OPTIONS, workflowStatus)}
+              </select>
+            </label>
+            <div class="meta-block meta-block-wide">
+              <span class="meta-label">Ubicación</span>
+              <span class="meta-value">${escapeHtml(ubicacion)}</span>
             </div>
             <div class="meta-block">
-              <span class="meta-label">Descripción</span>
-              <span class="meta-value">${escapeHtml(localizeTechnicalText(finding.help))}</span>
+              <span class="meta-label">Perfil afectado</span>
+              <span class="meta-value">${escapeHtml(perfilAfectado)}</span>
             </div>
-          </div>
-          <div class="finding-panels">
-            <section class="panel">
-              <span class="panel-title">HTML capturado</span>
-              <pre>${escapeHtml(finding.html)}</pre>
-            </section>
-            <section class="panel">
-              <span class="panel-title">Mensaje técnico</span>
-              <pre>${escapeHtml(localizeTechnicalText(finding.message))}</pre>
-            </section>
+            <div class="meta-block meta-block-wide">
+              <span class="meta-label">Resultado esperado</span>
+              <span class="meta-value">${escapeHtml(resultadoEsperado)}</span>
+            </div>
+            <div class="meta-block">
+              <span class="meta-label">Recomendación</span>
+              <span class="meta-value">${escapeHtml(recomendacion)}</span>
+            </div>
+            <div class="meta-block meta-block-wide">
+              <span class="meta-label">Evidencia</span>
+              <pre class="meta-value-pre">${escapeHtml(evidencia)}</pre>
+            </div>
+            <label class="meta-block meta-block-editable">
+              <span class="meta-label">Responsable</span>
+              <select class="incident-input" data-field="owner" name="responsable-${escapeHtml(incidentId)}">
+                ${renderSelectOptions(OWNER_OPTIONS, responsable)}
+              </select>
+            </label>
+            <div class="meta-block">
+              <span class="meta-label">Fecha de detección</span>
+              <span class="meta-value">${escapeHtml(fechaDeteccion)}</span>
+            </div>
+            <label class="meta-block meta-block-editable">
+              <span class="meta-label">Fecha de validación</span>
+              <input class="incident-input" data-field="validation-date" name="validacion-${escapeHtml(incidentId)}" type="date" value="">
+            </label>
+            <div class="meta-block meta-block-placeholder" aria-hidden="true"></div>
           </div>
         </div>
       </article>`;
@@ -343,7 +398,7 @@ function renderFindingsTable(findings: Finding[]): string {
         <span>Estado</span>
         <select id="finding-filter-status" name="status">
           <option value="all">Todos</option>
-          ${renderFilterOptions(statuses)}
+          ${renderSelectOptions(INCIDENT_STATUS_OPTIONS)}
         </select>
       </label>
       <label class="filter-field" for="finding-filter-impact">
@@ -369,15 +424,20 @@ function renderFilterOptions(values: string[]): string {
     .join('');
 }
 
+function renderSelectOptions(
+  options: Array<{ value: string; label: string }>,
+  selected?: string,
+): string {
+  return options
+    .map((option) => {
+      const isSelected = selected && option.value === selected ? ' selected' : '';
+
+      return `<option value="${escapeHtml(option.value)}"${isSelected}>${escapeHtml(option.label)}</option>`;
+    })
+    .join('');
+}
+
 function formatFilterLabel(value: string): string {
-  if (value === 'violation') {
-    return 'Incidencia';
-  }
-
-  if (value === 'needs-review') {
-    return 'Requiere revisión';
-  }
-
   if (value === 'sin impacto') {
     return 'Sin impacto';
   }
@@ -398,40 +458,60 @@ function renderFindingsLegend(): string {
         <h4 id="leyenda-campos">Qué significa cada campo de la incidencia</h4>
         <dl class="legend-definitions">
           <div class="legend-item">
-            <dt>Dispositivo auditado (viewport)</dt>
-            <dd>Resolución o dispositivo simulado donde se detectó el hallazgo (por ejemplo, escritorio o móvil).</dd>
+            <dt>ID</dt>
+            <dd>Identificador único de incidencia, por ejemplo <code>IRA-001</code>.</dd>
           </div>
           <div class="legend-item">
-            <dt>Estado de la incidencia</dt>
-            <dd>Tipo de resultado detectado por la herramienta en ese punto de análisis.</dd>
+            <dt>Título</dt>
+            <dd>Descripción breve del problema detectado.</dd>
           </div>
           <div class="legend-item">
             <dt>Impacto</dt>
-            <dd>Nivel estimado de afectación para las personas usuarias. Se prioriza de mayor a menor severidad.</dd>
+            <dd>Prioridad estimada: bloqueante, crítico, medio o bajo.</dd>
           </div>
           <div class="legend-item">
-            <dt>Regla axe-core</dt>
-            <dd>Regla técnica que disparó el hallazgo (id de regla), útil para buscar documentación y remediación.</dd>
+            <dt>Estado</dt>
+            <dd>Situación del ciclo de vida de la incidencia. Es editable para seguimiento.</dd>
           </div>
           <div class="legend-item">
-            <dt>URL</dt>
-            <dd>Página exacta donde se encontró la incidencia.</dd>
+            <dt>WCAG</dt>
+            <dd>Criterio o criterios de accesibilidad asociados al hallazgo.</dd>
           </div>
           <div class="legend-item">
-            <dt>Estado de flujo</dt>
-            <dd>Momento de captura del hallazgo. <em>Inicial (initial)</em> significa página recién cargada; <em>Flujo: nombre (flow:nombre)</em> significa después de ejecutar un flujo de interacción.</dd>
+            <dt>Nivel WCAG</dt>
+            <dd>Nivel de conformidad (A, AA o AAA). En la mayoría de IRA: A/AA.</dd>
           </div>
           <div class="legend-item">
-            <dt>Criterio WCAG</dt>
-            <dd>Mapeo a criterios de accesibilidad para justificar impacto y cumplimiento.</dd>
+            <dt>Ubicación</dt>
+            <dd>Página, componente, flujo o selector donde se presenta el problema.</dd>
           </div>
           <div class="legend-item">
-            <dt>Selector</dt>
-            <dd>Referencia técnica del elemento afectado en el DOM para localizarlo rápidamente en código.</dd>
+            <dt>Perfil afectado</dt>
+            <dd>Tipo de usuario más impactado: teclado, lector de pantalla, baja visión, cognitivo o motriz.</dd>
           </div>
           <div class="legend-item">
-            <dt>Evidencias técnicas</dt>
-            <dd>Incluye HTML capturado y mensaje técnico para reproducir, validar y corregir el problema.</dd>
+            <dt>Evidencia</dt>
+            <dd>Pruebas del hallazgo: selector, fragmento de código, reproducción o captura.</dd>
+          </div>
+          <div class="legend-item">
+            <dt>Resultado esperado</dt>
+            <dd>Comportamiento accesible que debería cumplirse.</dd>
+          </div>
+          <div class="legend-item">
+            <dt>Recomendación</dt>
+            <dd>Acción concreta sugerida para corregir la incidencia.</dd>
+          </div>
+          <div class="legend-item">
+            <dt>Responsable</dt>
+            <dd>Equipo o rol asignado para la corrección. Campo editable.</dd>
+          </div>
+          <div class="legend-item">
+            <dt>Fecha de detección</dt>
+            <dd>Fecha en la que se registró el hallazgo durante la auditoría.</dd>
+          </div>
+          <div class="legend-item">
+            <dt>Fecha de validación</dt>
+            <dd>Fecha de cierre y verificación final, si aplica. Campo editable.</dd>
           </div>
         </dl>
       </section>
@@ -439,8 +519,16 @@ function renderFindingsLegend(): string {
         <section class="legend-block" aria-labelledby="leyenda-estado">
           <h4 id="leyenda-estado">Estado</h4>
           <ul>
-            <li><strong>Incidencia (violation):</strong> Problema detectado automáticamente.</li>
-            <li><strong>Requiere revisión (needs-review):</strong> Hallazgo que requiere comprobación manual.</li>
+            <li><strong>Nuevo:</strong> Detectado y documentado, aún sin revisar por el equipo.</li>
+            <li><strong>Confirmado:</strong> Validado como incidencia real.</li>
+            <li><strong>Pendiente de corrección:</strong> Aceptado para ser corregido, aún sin desarrollo.</li>
+            <li><strong>En curso:</strong> Corrección en diseño, contenido o desarrollo.</li>
+            <li><strong>Corregido:</strong> El equipo indica que está solucionado, pendiente de validación de accesibilidad.</li>
+            <li><strong>Validado:</strong> Revisado de nuevo y confirmado como resuelto.</li>
+            <li><strong>Reabierto:</strong> La corrección no resuelve el problema o genera regresión.</li>
+            <li><strong>Aceptado con riesgo:</strong> No se corrige por decisión justificada; debe quedar trazabilidad.</li>
+            <li><strong>No aplica:</strong> Tras revisar, el criterio no aplica al contexto.</li>
+            <li><strong>Duplicado:</strong> Agrupado bajo otra incidencia principal.</li>
           </ul>
         </section>
         <section class="legend-block" aria-labelledby="leyenda-impacto">
@@ -478,18 +566,6 @@ function formatImpactLabel(value: Finding['impact']): string {
   return 'Sin impacto';
 }
 
-function formatStatusLabel(value: Finding['status']): string {
-  if (value === 'violation') {
-    return 'Incidencia';
-  }
-
-  if (value === 'needs-review') {
-    return 'Requiere revisión';
-  }
-
-  return value;
-}
-
 function formatFlowLabel(value: string): string {
   if (value === 'initial') {
     return 'Inicial';
@@ -506,6 +582,178 @@ function formatFlowLabel(value: string): string {
   }
 
   return value;
+}
+
+function formatIncidentId(index: number): string {
+  return `IRA-${String(index).padStart(3, '0')}`;
+}
+
+function mapFindingStatusToWorkflowStatus(status: Finding['status']): string {
+  if (status === 'needs-review') {
+    return 'confirmado';
+  }
+
+  return 'nuevo';
+}
+
+function formatWorkflowStatusIcon(value: string): string {
+  const icons: Record<string, string> = {
+    nuevo: '◎',
+    confirmado: '◆',
+    'pendiente-correccion': '⧖',
+    'en-curso': '⟳',
+    corregido: '☑',
+    validado: '✔',
+    reabierto: '↻',
+    'aceptado-riesgo': '⚠',
+    'no-aplica': '⊘',
+    duplicado: '⧉',
+  };
+
+  return icons[value] ?? '•';
+}
+
+function formatViewportLabel(viewport: string): string {
+  if (viewport === 'desktop') {
+    return 'Escritorio';
+  }
+
+  if (viewport === 'mobile') {
+    return 'Móvil';
+  }
+
+  return viewport;
+}
+
+function formatWorkflowStatusLabel(value: string): string {
+  const match = INCIDENT_STATUS_OPTIONS.find((option) => option.value === value);
+
+  return match?.label ?? 'Estado';
+}
+
+function inferWcagLevel(tags: string[]): string {
+  const normalized = tags.map((tag) => tag.toLowerCase());
+
+  if (normalized.some((tag) => tag.includes('aaa'))) {
+    return 'AAA';
+  }
+
+  if (normalized.some((tag) => tag.includes('aa'))) {
+    return 'AA';
+  }
+
+  if (normalized.some((tag) => tag.endsWith('a'))) {
+    return 'A';
+  }
+
+  return 'A/AA';
+}
+
+function buildLocationLabel(finding: Finding): string {
+  const parts = [
+    `Dispositivo: ${formatViewportLabel(finding.viewport)}`,
+    `Página: ${finding.url}`,
+    `Flujo: ${formatFlowLabel(finding.state)}`,
+    `Selector: ${finding.selector || '-'}`,
+  ];
+
+  return parts.join(' | ');
+}
+
+function inferAffectedProfiles(finding: Finding): string {
+  const fingerprint = `${finding.ruleId} ${finding.help} ${finding.message}`.toLowerCase();
+  const profiles = new Set<string>();
+
+  if (fingerprint.includes('keyboard') || fingerprint.includes('focus')) {
+    profiles.add('Teclado');
+    profiles.add('Motriz');
+  }
+
+  if (
+    fingerprint.includes('label') ||
+    fingerprint.includes('name') ||
+    fingerprint.includes('aria')
+  ) {
+    profiles.add('Lector de pantalla');
+    profiles.add('Cognitivo');
+  }
+
+  if (
+    fingerprint.includes('contrast') ||
+    fingerprint.includes('color') ||
+    fingerprint.includes('vision')
+  ) {
+    profiles.add('Baja visión');
+  }
+
+  if (profiles.size === 0) {
+    profiles.add('General');
+  }
+
+  return [...profiles].join(', ');
+}
+
+function buildEvidence(finding: Finding, selector: string): string {
+  const chunks = [
+    `Selector: ${selector}`,
+    `Flujo: ${formatFlowLabel(finding.state)}`,
+    `HTML: ${finding.html || 'No disponible'}`,
+    `Detalle técnico: ${localizeTechnicalText(finding.message)}`,
+  ];
+
+  return chunks.join('\n');
+}
+
+function buildExpectedOutcome(help: string): string {
+  const localized = localizeTechnicalText(help);
+
+  return `El componente debe cumplir con este criterio de accesibilidad: ${localized}`;
+}
+
+function buildRecommendation(message: string, helpUrl: string): string {
+  const recommendation = localizeTechnicalText(message);
+
+  if (!helpUrl) {
+    return recommendation;
+  }
+
+  return `${recommendation} Referencia: ${helpUrl}`;
+}
+
+function inferOwnerArea(finding: Finding): string {
+  const fingerprint = `${finding.ruleId} ${finding.help}`.toLowerCase();
+
+  if (fingerprint.includes('contrast') || fingerprint.includes('color')) {
+    return 'ui';
+  }
+
+  if (
+    fingerprint.includes('label') ||
+    fingerprint.includes('content') ||
+    fingerprint.includes('text')
+  ) {
+    return 'contenido';
+  }
+
+  if (
+    fingerprint.includes('focus') ||
+    fingerprint.includes('keyboard') ||
+    fingerprint.includes('aria')
+  ) {
+    return 'frontend';
+  }
+
+  return 'frontend';
+}
+
+function formatDateOnly(value: string): string {
+  const date = new Date(value);
+
+  if (!Number.isNaN(date.getTime())) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  return new Date().toISOString().slice(0, 10);
 }
 
 function localizeTechnicalText(value: string): string {
@@ -565,6 +813,30 @@ const TECHNICAL_REPLACEMENTS: Array<[RegExp, string]> = [
   [/\blabel\b/gi, 'etiqueta'],
   [/\bpage\b/gi, 'página'],
   [/\bcontent\b/gi, 'contenido'],
+];
+
+const INCIDENT_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'nuevo', label: 'Nuevo' },
+  { value: 'confirmado', label: 'Confirmado' },
+  { value: 'pendiente-correccion', label: 'Pendiente de corrección' },
+  { value: 'en-curso', label: 'En curso' },
+  { value: 'corregido', label: 'Corregido' },
+  { value: 'validado', label: 'Validado' },
+  { value: 'reabierto', label: 'Reabierto' },
+  { value: 'aceptado-riesgo', label: 'Aceptado con riesgo' },
+  { value: 'no-aplica', label: 'No aplica' },
+  { value: 'duplicado', label: 'Duplicado' },
+];
+
+const OWNER_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'ux', label: 'UX' },
+  { value: 'ui', label: 'UI' },
+  { value: 'frontend', label: 'Frontend' },
+  { value: 'contenido', label: 'Contenido' },
+  { value: 'producto', label: 'Producto' },
+  { value: 'accesibilidad', label: 'Accesibilidad' },
+  { value: 'qa', label: 'QA' },
+  { value: 'sin-asignar', label: 'Sin asignar' },
 ];
 
 function getUniqueSortedValues(values: string[]): string[] {

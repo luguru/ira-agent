@@ -14,8 +14,18 @@ Formato basado en Keep a Changelog y versionado SemVer.
 	- Se separaron assets del reporte en archivos externos (`report.css` y `report.js`) y se mejoro la maquetacion del detalle.
 	- Se incorporaron filtros por dispositivo, estado e impacto con contador dinamico y accion de limpieza.
 	- Se anadio una leyenda de lectura ampliada con definiciones de campos, estado y baremo de impacto.
+	- El detalle de incidencias evoluciono a una ficha IRA completa (ID, titulo, impacto, estado, WCAG, nivel, ubicacion, perfil afectado, evidencia, resultado esperado, recomendacion, responsable y fechas).
+	- El estado operativo se muestra en la cabecera como chip y su selector editable se mueve al bloque inferior de metadatos.
+	- La cuadricula interna de cada incidencia se reorganiza por filas funcionales para lectura y seguimiento operativo.
+	- Los campos `Estado`, `Responsable` y `Fecha de validacion` ahora son editables en el reporte, con persistencia local en navegador para seguimiento operativo.
 	- Se ajusto la nomenclatura visual para evitar ambiguedades (por ejemplo, `Flujo` en la tarjeta de detalle).
 	- Se normalizaron textos visibles al castellano, manteniendo terminos tecnicos en ingles cuando aportan trazabilidad (`ruleId`, `violation`, `needs-review`, `flow:*`).
+	- Se ajusta el indicador visual del acordeon para reflejar direccion de cierre/apertura de forma mas clara.
+
+### Fixed
+- Reporte HTML (interaccion):
+	- Se corrige la ocultacion de paneles del acordeon respetando el atributo `hidden` en `finding-body`.
+	- Se restablece el comportamiento de mostrar/ocultar paneles al clicar la cabecera o el control del acordeon.
 
 - Pruebas y preview local de reporte:
 	- Fixture reutilizable para simular ejecuciones de auditoria sin lanzar crawls reales.
