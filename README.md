@@ -44,6 +44,27 @@ Auditoría completa usando la configuración del proyecto:
 npm run audit
 ```
 
+Lanzar landing local para ejecutar auditorías desde navegador:
+
+```bash
+npm run web
+```
+
+Después abre `http://localhost:4173`.
+
+Desde la landing puedes indicar:
+
+- URL a analizar (obligatoria).
+- Título de auditoría (opcional). Si queda vacío, se usa automáticamente el `<title>` de la URL objetivo; si no existe, se intenta con el primer `<h1>` y, como último fallback, `Sitio de prueba`.
+- `maxPages` y `maxDepth` (opcionales, con fallback a valores por defecto de `audit.config.json`).
+- `Analizar sitio completo` (fija `maxPages` y `maxDepth` a `99999` y desactiva ambos inputs).
+- Selección de `axeTags` por checkbox.
+- Los `axeTags` muestran explicacion en lenguaje simple para facilitar su uso a perfiles no tecnicos.
+- Selección de `viewports` por checkbox.
+- Historial de ejecuciones previas (solo runs existentes en `runs/`) con acciones para abrir `report.html` en pestaña, eliminar runs individuales y eliminar todas las auditorias listadas.
+
+Al ejecutar, el backend genera los mismos artefactos de siempre en `runs/` y devuelve enlace directo a `report.html`.
+
 Comandos de soporte:
 
 ```bash

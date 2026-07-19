@@ -19,14 +19,7 @@
   "keepQueryParams": false,
   "waitUntil": "domcontentloaded",
   "timeoutMs": 30000,
-  "axeTags": [
-    "wcag2a",
-    "wcag2aa",
-    "wcag21a",
-    "wcag21aa",
-    "wcag22aa",
-    "EN-301-549"
-  ],
+  "axeTags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa", "EN-301-549"],
   "viewports": [
     {
       "name": "desktop",
