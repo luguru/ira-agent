@@ -6,6 +6,23 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+### Added
+
+- Protección inicial frente a destinos de red locales, privados y reservados.
+- Workflows de CodeQL, dependency review y Dependabot.
+- Política de seguridad, guía de contribución y CODEOWNERS.
+
+### Changed
+
+- La interfaz web escucha en `127.0.0.1` de forma predeterminada.
+- El modo de sitio completo queda limitado a 1000 páginas y profundidad 10.
+- CI ejecuta tests, build y validación de formato.
+
+### Security
+
+- Validación de URLs y redirecciones para la obtención de metadatos.
+- Restricción de permisos de GitHub Actions.
+
 ## [0.4.0] - 2026-07-19
 
 ### Changed
