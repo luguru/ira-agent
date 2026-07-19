@@ -6,10 +6,15 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-19
+
 ### Changed
 - Tooling TypeScript:
 	- El script `build` ahora usa `tsconfig.build.json` para compilar solo `src` a `dist`.
 	- `tsconfig.json` pasa a modo tipado de editor (`noEmit`) e incluye `src`, `tests` y archivos de declaración.
+
+- Experiencia de ejecucion:
+	- Se incorpora script `npm run web` para iniciar una landing local y lanzar auditorias desde navegador.
 
 - Calidad de código del reporte:
 	- Se ajusta el parseo de enlaces de referencia en recomendaciones para mejorar legibilidad y cumplir reglas de análisis estático.
@@ -19,6 +24,16 @@ Formato basado en Keep a Changelog y versionado SemVer.
 ### Added
 - Compatibilidad de análisis:
 	- Se añade `src/node-compat-shims.d.ts` para mejorar compatibilidad de resolución de módulos `node:*` en ciertos analizadores del IDE.
+
+- Landing de auditoria:
+	- Nueva UI en `public/landing.html` + `public/landing.css` + `public/landing.js` para configurar URL, titulo, `maxPages`, `maxDepth`, `axeTags` y `viewports`.
+	- Se incluye `wcag22a` dentro de los `axeTags` disponibles por defecto.
+	- Se añade ayuda contextual en lenguaje no tecnico para explicar cada opcion del formulario y cada `axeTag`.
+	- Nuevo backend `src/web-server.ts` con endpoint `POST /api/audit` que construye la configuracion efectiva y ejecuta el motor de auditoria.
+	- El titulo por defecto de auditoria se resuelve automaticamente desde la URL objetivo (prioridad: `<title>`, luego primer `<h1>`, fallback `Sitio de prueba`).
+	- Modo `Analizar sitio completo` con asignacion automatica de `maxPages=99999` y `maxDepth=99999`, desactivando inputs manuales y mostrando aviso de duracion.
+	- Seccion de historial en landing para listar runs previos existentes en `runs/`, con acciones de apertura en pestaña, eliminacion individual y eliminacion masiva.
+	- Nuevo endpoint `GET /api/history` filtrado por disponibilidad real de artefactos y endpoints `DELETE /api/runs/:runId` y `DELETE /api/history` para borrar auditorias.
 
 ### Fixed
 - Scripts y tipado:

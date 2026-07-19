@@ -1,11 +1,12 @@
 {
   "name": "ira-agent",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Agente local para análisis automático de accesibilidad y generación de informe IRA automático.",
   "type": "module",
   "scripts": {
     "audit": "tsx src/index.ts",
     "dev": "tsx src/index.ts",
+    "web": "tsx src/web-server.ts",
     "build": "tsc -p tsconfig.build.json",
     "test": "tsx --test tests/*.test.ts",
     "test:report": "tsx --test tests/report-html.test.ts",
