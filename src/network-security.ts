@@ -4,6 +4,19 @@ import process from 'node:process';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_REDIRECTS = 3;
+const DEFAULT_MAXIMUM_BYTES = 1_000_000;
+
+type PublicFetchOptions = {
+  timeoutMs?: number;
+  maxRedirects?: number;
+  headers?: HeadersInit;
+};
+
+export type PublicTextResponse = {
+  response: Response;
+  text: string;
+  finalUrl: string;
+};
 
 export class UnsafeNetworkTargetError extends Error {
   constructor(message: string) {
@@ -48,40 +61,80 @@ export async function assertPublicHttpUrl(input: string): Promise<string> {
   return url.toString();
 }
 
+/**
+ * Devuelve una respuesta HTTP validada. El timeout cubre la conexión y las
+ * cabeceras, pero no puede seguir activo después de devolver el Response.
+ * Para leer texto remoto usa fetchPublicText.
+ */
 export async function fetchPublicHttp(
   input: string,
-  options: {
-    timeoutMs?: number;
-    maxRedirects?: number;
-    headers?: HeadersInit;
-  } = {},
+  options: PublicFetchOptions = {},
 ): Promise<Response> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const result = await fetchPublicResponse(input, options, controller.signal);
+    return result.response;
+  } catch (error) {
+    throw normalizeFetchError(error);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
+ * Descarga texto desde una URL pública aplicando una única fecha límite a la
+ * resolución, redirecciones, cabeceras y lectura completa del cuerpo.
+ */
+export async function fetchPublicText(
+  input: string,
+  options: PublicFetchOptions & { maximumBytes?: number } = {},
+): Promise<PublicTextResponse> {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const maximumBytes = options.maximumBytes ?? DEFAULT_MAXIMUM_BYTES;
+
+  if (!Number.isSafeInteger(maximumBytes) || maximumBytes < 1) {
+    throw new TypeError('maximumBytes debe ser un entero positivo.');
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const result = await fetchPublicResponse(input, options, controller.signal);
+    const text = await readLimitedText(result.response, maximumBytes);
+    return { ...result, text };
+  } catch (error) {
+    throw normalizeFetchError(error);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchPublicResponse(
+  input: string,
+  options: PublicFetchOptions,
+  signal: AbortSignal,
+): Promise<{ response: Response; finalUrl: string }> {
   const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
   let currentUrl = await assertPublicHttpUrl(input);
 
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount += 1) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-    let response: Response;
-    try {
-      response = await fetch(currentUrl, {
-        headers: options.headers,
-        redirect: 'manual',
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await fetch(currentUrl, {
+      headers: options.headers,
+      redirect: 'manual',
+      signal,
+    });
 
     if (!isRedirect(response.status)) {
-      return response;
+      return { response, finalUrl: currentUrl };
     }
 
     const location = response.headers.get('location');
     if (!location) {
-      return response;
+      return { response, finalUrl: currentUrl };
     }
 
     if (redirectCount === maxRedirects) {
@@ -95,6 +148,56 @@ export async function fetchPublicHttp(
   }
 
   throw new UnsafeNetworkTargetError('No se ha podido completar la petición remota.');
+}
+
+async function readLimitedText(response: Response, maximumBytes: number): Promise<string> {
+  const declaredLength = Number(response.headers.get('content-length') ?? '0');
+  if (Number.isFinite(declaredLength) && declaredLength > maximumBytes) {
+    await response.body?.cancel();
+    throw new UnsafeNetworkTargetError('La respuesta remota es demasiado grande.');
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return '';
+  }
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    totalBytes += value.byteLength;
+    if (totalBytes > maximumBytes) {
+      await reader.cancel();
+      throw new UnsafeNetworkTargetError('La respuesta remota es demasiado grande.');
+    }
+
+    chunks.push(value);
+  }
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return new TextDecoder().decode(combined);
+}
+
+function normalizeFetchError(error: unknown): unknown {
+  if (error instanceof Error && error.name === 'AbortError') {
+    return new UnsafeNetworkTargetError(
+      'La petición remota ha superado el tiempo máximo permitido.',
+    );
+  }
+
+  return error;
 }
 
 export function isPrivateIpAddress(address: string): boolean {

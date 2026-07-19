@@ -7,7 +7,7 @@ import process from 'node:process';
 import { createAiSummaryProvider } from './ai-summary-provider.js';
 import { runAudit } from './audit-engine.js';
 import { readConfig, validateConfig } from './config.js';
-import { assertPublicHttpUrl, fetchPublicHttp } from './network-security.js';
+import { assertPublicHttpUrl, fetchPublicText } from './network-security.js';
 import { readRunHistory } from './run-metrics.js';
 import type { AuditConfig, ViewportConfig } from './types.js';
 import { getSafeRunId } from './url-utils.js';
@@ -316,12 +316,17 @@ async function resolveDefaultSiteNameForRequest(request: IncomingMessage): Promi
 
 async function resolveSiteNameFromUrl(urlValue: string): Promise<string> {
   try {
-    const response = await fetchPublicHttp(urlValue, { timeoutMs: 8000, maxRedirects: 3 });
+    const { response, text: html } = await fetchPublicText(urlValue, {
+      timeoutMs: 8000,
+      maxRedirects: 3,
+      maximumBytes: 1_000_000,
+      headers: {
+        accept: 'text/html, application/xhtml+xml;q=0.9, text/plain;q=0.8',
+      },
+    });
     if (!response.ok) {
       return 'Sitio de prueba';
     }
-
-    const html = await readLimitedText(response, 1_000_000);
     const title = extractTitle(html);
     if (title) {
       return title;
@@ -648,41 +653,6 @@ async function sendFile(response: ServerResponse, filePath: string): Promise<voi
   });
 
   response.end(content);
-}
-
-async function readLimitedText(response: Response, maximumBytes: number): Promise<string> {
-  const declaredLength = Number(response.headers.get('content-length') ?? '0');
-  if (Number.isFinite(declaredLength) && declaredLength > maximumBytes) {
-    throw new Error('La respuesta remota es demasiado grande.');
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    return '';
-  }
-
-  const chunks: Uint8Array[] = [];
-  let totalBytes = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    totalBytes += value.byteLength;
-    if (totalBytes > maximumBytes) {
-      await reader.cancel();
-      throw new Error('La respuesta remota es demasiado grande.');
-    }
-    chunks.push(value);
-  }
-
-  const combined = new Uint8Array(totalBytes);
-  let offset = 0;
-  for (const chunk of chunks) {
-    combined.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return new TextDecoder().decode(combined);
 }
 
 function inferContentType(filePath: string): string {
