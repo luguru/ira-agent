@@ -1,31 +1,41 @@
-## Summary
+## Resumen
 
-Describe briefly what this PR changes.
+Describe qué cambia este PR y por qué.
 
-## Changes
+Closes #
 
-- 
+## Cambios
 
-## Validation
+-
 
+## Validación
+
+- [ ] `npm test`
 - [ ] `npm run build`
-- [ ] Manual run completed (`npm run audit`)
+- [ ] `npm run format:check`
+- [ ] He añadido o actualizado pruebas cuando corresponde
+- [ ] He realizado una ejecución manual cuando el cambio afecta al crawler o al informe
 
-## Version Bump Proposal
+## Seguridad y privacidad
 
-Select one option and justify briefly.
+- [ ] No se incluyen secretos, tokens, informes reales ni datos sensibles
+- [ ] He considerado SSRF, redirecciones y acceso a redes privadas si el cambio procesa URLs
+- [ ] Los permisos de GitHub Actions son los mínimos necesarios
 
-- [ ] patch (fix)
-- [ ] minor (feature)
-- [ ] major (breaking)
+## Propuesta de versión
 
-Reason:
+- [ ] patch (corrección)
+- [ ] minor (funcionalidad)
+- [ ] major (cambio incompatible)
+- [ ] no requiere nueva versión
 
-- 
+Justificación:
+
+-
 
 ## Checklist
 
-- [ ] Scope is focused
-- [ ] No sensitive data added
-- [ ] Docs/config updated if needed
-- [ ] Changelog entry updated in Unreleased
+- [ ] El PR apunta normalmente a `develop`
+- [ ] El alcance es reducido y revisable
+- [ ] La documentación o configuración se ha actualizado
+- [ ] `CHANGELOG.md` incluye el cambio en `Unreleased` cuando corresponde

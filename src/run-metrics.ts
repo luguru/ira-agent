@@ -25,7 +25,11 @@ export function calculateRunMetrics(run: AuditRun): RunMetrics {
   };
 }
 
-export function buildRunTrend(current: RunMetrics, previous?: RunMetrics, baselineRunId?: string): RunTrend {
+export function buildRunTrend(
+  current: RunMetrics,
+  previous?: RunMetrics,
+  baselineRunId?: string,
+): RunTrend {
   if (!previous) {
     return {
       hasBaseline: false,

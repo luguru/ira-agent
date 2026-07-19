@@ -5,15 +5,7 @@
   "maxDepth": 2,
   "concurrency": 2,
   "include": ["/"],
-  "exclude": [
-    "/wp-admin",
-    "/admin",
-    "/login",
-    "/logout",
-    "/carrito",
-    "/checkout",
-    "/area-privada"
-  ],
+  "exclude": ["/wp-admin", "/admin", "/login", "/logout", "/carrito", "/checkout", "/area-privada"],
   "crawlSitemap": true,
   "sameOriginOnly": true,
   "keepQueryParams": false,

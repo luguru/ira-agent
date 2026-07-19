@@ -1,6 +1,6 @@
 :root {
-  --font-sans: "DM Sans", "Avenir Next", "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+  --font-sans: 'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', monospace;
 
   --bg-app: #f3f4f6;
   --bg-surface: #ffffff;

@@ -14,7 +14,8 @@
     "preview:report:open": "npm run preview:report && open runs/mock-preview/report.html",
     "start": "node dist/index.js",
     "format": "prettier --write .",
-    "clean": "node -e \"require('fs').rmSync('runs', { recursive: true, force: true })\""
+    "clean": "node -e \"require('fs').rmSync('runs', { recursive: true, force: true })\"",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "accessibility",
@@ -36,5 +37,16 @@
     "prettier": "^3.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luguru/ira-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/luguru/ira-agent/issues"
+  },
+  "homepage": "https://github.com/luguru/ira-agent#readme"
 }

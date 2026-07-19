@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an improvement for ira-agent
-title: "[FEAT] "
+title: '[FEAT] '
 labels: enhancement
 assignees: ''
 ---

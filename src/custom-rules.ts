@@ -6,7 +6,10 @@ type CustomRuleContext = {
   state: string;
 };
 
-export async function runCustomRules(page: import('playwright').Page, context: CustomRuleContext): Promise<Finding[]> {
+export async function runCustomRules(
+  page: import('playwright').Page,
+  context: CustomRuleContext,
+): Promise<Finding[]> {
   const findings: Finding[] = [];
 
   const genericLinks = await page.$$eval('a', (links) =>
@@ -16,9 +19,7 @@ export async function runCustomRules(page: import('playwright').Page, context: C
         href: (link as HTMLAnchorElement).href,
         html: link.outerHTML,
       }))
-      .filter((link) =>
-        /^(aquí|leer más|más información|ver más|ver|descargar)$/i.test(link.text),
-      ),
+      .filter((link) => /^(aquí|leer más|más información|ver más|ver|descargar)$/i.test(link.text)),
   );
 
   for (const link of genericLinks) {

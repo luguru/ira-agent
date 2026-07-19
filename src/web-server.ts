@@ -7,6 +7,7 @@ import process from 'node:process';
 import { createAiSummaryProvider } from './ai-summary-provider.js';
 import { runAudit } from './audit-engine.js';
 import { readConfig, validateConfig } from './config.js';
+import { assertPublicHttpUrl, fetchPublicHttp } from './network-security.js';
 import { readRunHistory } from './run-metrics.js';
 import type { AuditConfig, ViewportConfig } from './types.js';
 import { getSafeRunId } from './url-utils.js';
@@ -56,7 +57,11 @@ type PublicHistoryEntry = {
 };
 
 const PORT = parsePort(process.env.PORT ?? '4173');
-const FULL_SITE_LIMIT = 99999;
+const HOST = process.env.HOST?.trim() || '127.0.0.1';
+const MAX_PAGES = 1_000;
+const MAX_DEPTH = 20;
+const FULL_SITE_MAX_PAGES = 1_000;
+const FULL_SITE_MAX_DEPTH = 10;
 const CONFIG_PATH = 'audit.config.json';
 const PUBLIC_DIR = path.resolve('public');
 const RUNS_DIR = path.resolve('runs');
@@ -81,8 +86,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Landing IRA disponible en http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Landing IRA disponible en http://${HOST}:${PORT}`);
 });
 
 async function routeRequest(
@@ -90,6 +95,10 @@ async function routeRequest(
   pathname: string,
   response: ServerResponse,
 ): Promise<boolean> {
+  if (request.method === 'POST' || request.method === 'DELETE') {
+    assertSameOriginRequest(request);
+  }
+
   if (await tryServePublicAsset(request.method, pathname, response)) {
     return true;
   }
@@ -124,6 +133,7 @@ async function routeRequest(
   }
 
   if (request.method === 'POST' && pathname === '/api/audit') {
+    assertJsonRequest(request);
     await handleAuditRequest(request, response);
     return true;
   }
@@ -136,7 +146,38 @@ async function routeRequest(
   return false;
 }
 
-async function handleAuditRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
+function assertSameOriginRequest(request: IncomingMessage): void {
+  const origin = request.headers.origin;
+  if (!origin) {
+    return;
+  }
+
+  const host = request.headers.host;
+  if (!host || (origin !== `http://${host}` && origin !== `https://${host}`)) {
+    throw createHttpError(403, 'Origen de petición no permitido.');
+  }
+}
+
+function assertJsonRequest(request: IncomingMessage): void {
+  const contentType = request.headers['content-type'] ?? '';
+  if (!contentType.toLowerCase().startsWith('application/json')) {
+    throw createHttpError(415, 'Content-Type debe ser application/json.');
+  }
+}
+
+async function assertAuditableUrl(value: string): Promise<void> {
+  try {
+    await assertPublicHttpUrl(value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'URL no permitida.';
+    throw createHttpError(400, message);
+  }
+}
+
+async function handleAuditRequest(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
   if (isAuditRunning) {
     sendJson(response, 409, {
       message: 'Ya hay una auditoria en ejecucion. Espera a que finalice para lanzar otra.',
@@ -147,6 +188,13 @@ async function handleAuditRequest(request: IncomingMessage, response: ServerResp
   const payload = (await readJsonBody(request)) as LaunchAuditPayload;
   const baseConfig = await loadBaseConfig();
   const config = buildConfigFromPayload(baseConfig, payload);
+  if (config.maxPages > MAX_PAGES) {
+    throw createHttpError(400, `maxPages no puede superar ${MAX_PAGES}.`);
+  }
+  if (config.maxDepth > MAX_DEPTH) {
+    throw createHttpError(400, `maxDepth no puede superar ${MAX_DEPTH}.`);
+  }
+  await assertAuditableUrl(config.baseUrl);
 
   if (!readOptionalText(payload.siteName)) {
     config.siteName = await resolveSiteNameFromUrl(config.baseUrl);
@@ -242,8 +290,8 @@ function buildPublicOptions(config: AuditConfig): PublicOptions {
       maxDepth: config.maxDepth,
     },
     fullSite: {
-      maxPages: FULL_SITE_LIMIT,
-      maxDepth: FULL_SITE_LIMIT,
+      maxPages: FULL_SITE_MAX_PAGES,
+      maxDepth: FULL_SITE_MAX_DEPTH,
     },
     axeTags: [...config.axeTags],
     viewports: config.viewports.map((viewport) => ({
@@ -267,28 +315,19 @@ async function resolveDefaultSiteNameForRequest(request: IncomingMessage): Promi
 }
 
 async function resolveSiteNameFromUrl(urlValue: string): Promise<string> {
-  const safeUrl = safeHttpUrl(urlValue);
-
-  if (!safeUrl) {
-    return 'Sitio de prueba';
-  }
-
   try {
-    const response = await fetchWithTimeout(safeUrl, 8000);
-
+    const response = await fetchPublicHttp(urlValue, { timeoutMs: 8000, maxRedirects: 3 });
     if (!response.ok) {
       return 'Sitio de prueba';
     }
 
-    const html = await response.text();
+    const html = await readLimitedText(response, 1_000_000);
     const title = extractTitle(html);
-
     if (title) {
       return title;
     }
 
     const h1 = extractFirstH1(html);
-
     if (h1) {
       return h1;
     }
@@ -296,20 +335,6 @@ async function resolveSiteNameFromUrl(urlValue: string): Promise<string> {
     return 'Sitio de prueba';
   } catch {
     return 'Sitio de prueba';
-  }
-}
-
-function safeHttpUrl(value: string): string | null {
-  try {
-    const url = new URL(value);
-
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return null;
-    }
-
-    return url.toString();
-  } catch {
-    return null;
   }
 }
 
@@ -375,20 +400,6 @@ function decodeHtmlEntities(value: string): string {
     .replaceAll('&quot;', '"')
     .replaceAll('&#39;', "'")
     .replaceAll('&apos;', "'");
-}
-
-async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
 }
 
 async function readPublicHistory(): Promise<PublicHistoryEntry[]> {
@@ -507,8 +518,8 @@ function buildConfigFromPayload(baseConfig: AuditConfig, payload: LaunchAuditPay
   const fullSite = payload.fullSite === true;
 
   if (fullSite) {
-    config.maxPages = FULL_SITE_LIMIT;
-    config.maxDepth = FULL_SITE_LIMIT;
+    config.maxPages = FULL_SITE_MAX_PAGES;
+    config.maxDepth = FULL_SITE_MAX_DEPTH;
   } else {
     const maxPages = readOptionalInteger(payload.maxPages, 'maxPages', 1);
     const maxDepth = readOptionalInteger(payload.maxDepth, 'maxDepth', 0);
@@ -548,7 +559,10 @@ function buildConfigFromPayload(baseConfig: AuditConfig, payload: LaunchAuditPay
   return config;
 }
 
-function resolveViewports(allViewports: ViewportConfig[], selectedNames: string[]): ViewportConfig[] {
+function resolveViewports(
+  allViewports: ViewportConfig[],
+  selectedNames: string[],
+): ViewportConfig[] {
   const selectedSet = new Set(selectedNames);
   return allViewports.filter((viewport) => selectedSet.has(viewport.name));
 }
@@ -634,6 +648,41 @@ async function sendFile(response: ServerResponse, filePath: string): Promise<voi
   });
 
   response.end(content);
+}
+
+async function readLimitedText(response: Response, maximumBytes: number): Promise<string> {
+  const declaredLength = Number(response.headers.get('content-length') ?? '0');
+  if (Number.isFinite(declaredLength) && declaredLength > maximumBytes) {
+    throw new Error('La respuesta remota es demasiado grande.');
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return '';
+  }
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    totalBytes += value.byteLength;
+    if (totalBytes > maximumBytes) {
+      await reader.cancel();
+      throw new Error('La respuesta remota es demasiado grande.');
+    }
+    chunks.push(value);
+  }
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(combined);
 }
 
 function inferContentType(filePath: string): string {

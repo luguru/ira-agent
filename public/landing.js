@@ -151,7 +151,8 @@ function bindEvents() {
       showResult(result);
       await loadHistory();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error inesperado al ejecutar la auditoria.';
+      const message =
+        error instanceof Error ? error.message : 'Error inesperado al ejecutar la auditoria.';
       writeStatus(message, true);
       runResult.hidden = true;
     } finally {
@@ -184,7 +185,8 @@ async function loadOptions() {
     renderAxeTags(data.axeTags || []);
     renderViewports(data.viewports || []);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error cargando opciones de formulario.';
+    const message =
+      error instanceof Error ? error.message : 'Error cargando opciones de formulario.';
     writeStatus(message, true);
   }
 }
@@ -205,7 +207,8 @@ function renderAxeTags(tags) {
 
   for (const tag of tags) {
     const metaText =
-      AXE_TAG_DESCRIPTIONS[tag] || 'Conjunto de reglas automaticas de accesibilidad para este criterio.';
+      AXE_TAG_DESCRIPTIONS[tag] ||
+      'Conjunto de reglas automaticas de accesibilidad para este criterio.';
     axeTagsContainer.appendChild(createCheckItem('axeTags', tag, tag, metaText, true));
   }
 
