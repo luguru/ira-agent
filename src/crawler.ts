@@ -1,4 +1,5 @@
 import type { Browser, BrowserContext } from 'playwright';
+import { throwIfCancelled } from './audit-control.js';
 import { assertPublicHttpUrl, fetchPublicText } from './network-security.js';
 import type { AuditConfig } from './types.js';
 import { normalizeUrl, shouldVisitUrl } from './url-utils.js';
@@ -11,7 +12,12 @@ type QueueItem = {
   depth: number;
 };
 
-export async function crawlSite(browser: Browser, config: AuditConfig): Promise<string[]> {
+export async function crawlSite(
+  browser: Browser,
+  config: AuditConfig,
+  isCancelled?: () => boolean,
+): Promise<string[]> {
+  throwIfCancelled(isCancelled);
   const startUrl = normalizeUrl(config.baseUrl, config.baseUrl, config.keepQueryParams);
 
   if (!startUrl) {
@@ -52,6 +58,7 @@ export async function crawlSite(browser: Browser, config: AuditConfig): Promise<
   }
 
   while (queue.length > 0 && discovered.length < config.maxPages) {
+    throwIfCancelled(isCancelled);
     const current = queue.shift();
 
     if (!current) {
@@ -71,6 +78,7 @@ export async function crawlSite(browser: Browser, config: AuditConfig): Promise<
     const page = await context.newPage();
 
     try {
+      throwIfCancelled(isCancelled);
       await page.goto(current.url, {
         waitUntil: config.waitUntil,
         timeout: config.timeoutMs,
@@ -87,6 +95,7 @@ export async function crawlSite(browser: Browser, config: AuditConfig): Promise<
       );
 
       for (const href of hrefs) {
+        throwIfCancelled(isCancelled);
         addUrl(href, current.depth + 1);
       }
     } catch (error) {

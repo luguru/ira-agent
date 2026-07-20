@@ -17,6 +17,21 @@ Formato basado en Keep a Changelog y versionado SemVer.
 - La interfaz web escucha en `127.0.0.1` de forma predeterminada.
 - El modo de sitio completo queda limitado a 1000 páginas y profundidad 10.
 - CI ejecuta tests, build y validación de formato.
+- Motor de flows: las acciones con selector ahora usan el primer elemento visible y habilitado, evitando falsos fallos por coincidencias ocultas.
+- Landing web:
+  - La ejecución de auditoría pasa a modo asíncrono con seguimiento de estado en tiempo real.
+  - Se añade barra de progreso con porcentaje y lista de tareas activas/completadas.
+  - Se añade estimación de tiempo restante en función del ritmo de análisis completados, con suavizado para reducir saltos bruscos.
+  - Se incorpora cancelación de auditoría en curso desde la propia interfaz.
+  - Los errores de ejecución se presentan con mensajes comprensibles en español para usuario final.
+
+### Fixed
+
+- Rastreo y cobertura de URLs:
+  - Se excluyen archivos `.gpx` del crawl para evitar análisis de recursos no HTML.
+  - Se endurece el selector por defecto del flow `menu-mobile` para evitar colisiones con controles de consentimiento.
+- Landing y configuración efectiva:
+  - Al desactivar un viewport en la landing, ahora se omiten automáticamente los flows asociados a ese viewport antes de validar la configuración (ejemplo: `menu-mobile` cuando no se analiza `mobile`).
 
 ### Security
 

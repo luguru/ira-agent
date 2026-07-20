@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { AuditCancelledError, throwIfCancelled } from './audit-control.js';
 import { auditPage } from './audit-page.js';
 import { crawlSite } from './crawler.js';
 import { writeHtmlReport } from './report-html.js';
@@ -25,7 +26,38 @@ type RunAuditOptions = {
   config: AuditConfig;
   outDir: string;
   aiSummaryProvider?: AiSummaryProvider;
+  isCancelled?: () => boolean;
+  onProgress?: (event: AuditProgressEvent) => void;
 };
+
+export type AuditProgressEvent =
+  | {
+      type: 'stage';
+      stage: 'preparing' | 'crawling' | 'auditing' | 'reporting' | 'ai-summary';
+      message: string;
+    }
+  | {
+      type: 'urls-discovered';
+      count: number;
+    }
+  | {
+      type: 'jobs-created';
+      count: number;
+    }
+  | {
+      type: 'job-started';
+      index: number;
+      total: number;
+      url: string;
+      viewport: string;
+    }
+  | {
+      type: 'job-finished';
+      index: number;
+      total: number;
+      url: string;
+      viewport: string;
+    };
 
 export type RunAuditResult = {
   run: AuditRun;
@@ -37,7 +69,14 @@ export type RunAuditResult = {
 };
 
 export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult> {
-  const { config, outDir, aiSummaryProvider } = options;
+  const { config, outDir, aiSummaryProvider, isCancelled, onProgress } = options;
+
+  onProgress?.({
+    type: 'stage',
+    stage: 'preparing',
+    message: 'Preparando entorno de auditoría...',
+  });
+  throwIfCancelled(isCancelled);
 
   await mkdir(outDir, { recursive: true });
 
@@ -49,10 +88,18 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
   await resultStore.initialize(outDir);
 
   try {
+    throwIfCancelled(isCancelled);
+    onProgress?.({
+      type: 'stage',
+      stage: 'crawling',
+      message: 'Rastreando URLs del sitio...',
+    });
     console.log('Rastreando sitio...');
-    const urls = await crawlSite(browser, config);
+    const urls = await crawlSite(browser, config, isCancelled);
 
     console.log(`URLs descubiertas para análisis: ${urls.length}`);
+    onProgress?.({ type: 'urls-discovered', count: urls.length });
+    throwIfCancelled(isCancelled);
 
     const jobs: AuditJob[] = urls.flatMap((url) =>
       config.viewports.map((viewport) => ({
@@ -62,11 +109,26 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
     );
 
     console.log(`Análisis a ejecutar: ${jobs.length}\n`);
+    onProgress?.({ type: 'jobs-created', count: jobs.length });
+    onProgress?.({
+      type: 'stage',
+      stage: 'auditing',
+      message: 'Ejecutando análisis por URL y viewport...',
+    });
 
     const results = await mapLimit(jobs, config.concurrency, async (job, index) => {
+      throwIfCancelled(isCancelled);
+      onProgress?.({
+        type: 'job-started',
+        index,
+        total: jobs.length,
+        url: job.url,
+        viewport: job.viewport.name,
+      });
       console.log(`[${index + 1}/${jobs.length}] ${job.viewport.name} ${job.url}`);
 
       const result = await auditPage(browser, job.url, job.viewport, config);
+      throwIfCancelled(isCancelled);
 
       await resultStore.append({
         index,
@@ -74,8 +136,17 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
         result,
       });
 
+      onProgress?.({
+        type: 'job-finished',
+        index,
+        total: jobs.length,
+        url: job.url,
+        viewport: job.viewport.name,
+      });
+
       return result;
     });
+    throwIfCancelled(isCancelled);
 
     await resultStore.flush();
 
@@ -98,6 +169,12 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
     });
     const trend = buildRunTrend(metrics, baseline?.metrics, baseline?.runId);
     const runId = path.basename(outDir);
+    onProgress?.({
+      type: 'stage',
+      stage: 'reporting',
+      message: 'Generando reportes y métricas...',
+    });
+    throwIfCancelled(isCancelled);
 
     await writeFile(path.join(outDir, 'result.json'), JSON.stringify(run, null, 2), 'utf8');
     await writeFile(
@@ -118,6 +195,12 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
 
     if (aiSummaryProvider) {
       try {
+        onProgress?.({
+          type: 'stage',
+          stage: 'ai-summary',
+          message: 'Generando resumen IA (opcional)...',
+        });
+        throwIfCancelled(isCancelled);
         const aiSummary = await aiSummaryProvider(run);
 
         if (aiSummary) {
@@ -150,9 +233,10 @@ async function mapLimit<T, R>(
 ): Promise<R[]> {
   const results = new Array<R>(items.length);
   let currentIndex = 0;
+  let workerError: unknown;
 
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (currentIndex < items.length) {
+    while (currentIndex < items.length && !workerError) {
       const index = currentIndex;
       currentIndex += 1;
 
@@ -162,11 +246,19 @@ async function mapLimit<T, R>(
         continue;
       }
 
-      results[index] = await worker(item, index);
+      try {
+        results[index] = await worker(item, index);
+      } catch (error) {
+        workerError = error;
+      }
     }
   });
 
   await Promise.all(workers);
+
+  if (workerError) {
+    throw workerError;
+  }
 
   return results;
 }
@@ -181,4 +273,8 @@ function formatError(error: unknown): string {
   }
 
   return JSON.stringify(error);
+}
+
+export function isAuditCancelledError(error: unknown): error is AuditCancelledError {
+  return error instanceof AuditCancelledError;
 }
