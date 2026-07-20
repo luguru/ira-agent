@@ -89,7 +89,9 @@ async function executeClickStep(
     throw new Error('selector no definido para click');
   }
 
-  await page.locator(step.selector).first().click({ timeout });
+  const target = await getFirstActionableLocator(page, step.selector, timeout);
+
+  await target.click({ timeout });
 }
 
 async function executeTypeStep(
@@ -105,7 +107,9 @@ async function executeTypeStep(
     throw new Error('value no definido para type');
   }
 
-  await page.locator(step.selector).first().fill(step.value, { timeout });
+  const target = await getFirstActionableLocator(page, step.selector, timeout);
+
+  await target.fill(step.value, { timeout });
 }
 
 async function executePressStep(
@@ -118,7 +122,9 @@ async function executePressStep(
   }
 
   if (step.selector) {
-    await page.locator(step.selector).first().press(step.value, { timeout });
+    const target = await getFirstActionableLocator(page, step.selector, timeout);
+
+    await target.press(step.value, { timeout });
     return;
   }
 
@@ -146,4 +152,36 @@ async function executeWaitStep(
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+async function getFirstActionableLocator(
+  page: import('playwright').Page,
+  selector: string,
+  timeout: number,
+): Promise<import('playwright').Locator> {
+  const locator = page.locator(selector);
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    const count = await locator.count();
+
+    for (let index = 0; index < count; index += 1) {
+      const candidate = locator.nth(index);
+      const isVisible = await candidate.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        continue;
+      }
+
+      const isEnabled = await candidate.isEnabled().catch(() => false);
+
+      if (isEnabled) {
+        return candidate;
+      }
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`no se encontró elemento visible/habilitado para selector: ${selector}`);
 }

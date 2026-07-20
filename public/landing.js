@@ -1,5 +1,6 @@
 const form = document.getElementById('audit-form');
 const submitButton = document.getElementById('submit-button');
+const cancelButton = document.getElementById('cancel-button');
 const statusNode = document.getElementById('form-status');
 const fullSiteInput = document.getElementById('fullSite');
 const maxPagesInput = document.getElementById('maxPages');
@@ -23,14 +24,25 @@ const effectiveMaxDepth = document.getElementById('effective-maxDepth');
 const effectiveAxeTags = document.getElementById('effective-axeTags');
 const effectiveViewports = document.getElementById('effective-viewports');
 
+const progressPanel = document.getElementById('progress-panel');
+const progressPercent = document.getElementById('progress-percent');
+const progressMessage = document.getElementById('progress-message');
+const progressEta = document.getElementById('progress-eta');
+const progressTrack = document.getElementById('progress-track');
+const progressTasks = document.getElementById('progress-tasks');
+
 const historyRefreshButton = document.getElementById('history-refresh');
 const historyDeleteAllButton = document.getElementById('history-delete-all');
 const historyEmpty = document.getElementById('history-empty');
 const historyList = document.getElementById('history-list');
 
+const POLL_INTERVAL_MS = 1200;
+
 let options = null;
 let resolvedSiteNameDefault = 'Sitio de prueba';
 let siteNameDefaultTimer = null;
+let currentAuditId = null;
+let auditPollTimer = null;
 
 const AXE_TAG_DESCRIPTIONS = {
   wcag2a: 'Controles básicos de accesibilidad (nivel A de WCAG 2.0).',
@@ -43,12 +55,13 @@ const AXE_TAG_DESCRIPTIONS = {
 };
 
 bindEvents();
+resetProgressPanel();
 
 try {
   await loadOptions();
   await loadHistory();
 } catch (error) {
-  const message = error instanceof Error ? error.message : 'Error cargando opciones de formulario.';
+  const message = toUserFriendlyMessage(error, 'Error al cargar la configuración del formulario.');
   writeStatus(message, true);
 }
 
@@ -90,10 +103,13 @@ function bindEvents() {
     try {
       await deleteAllRuns();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'No se pudieron eliminar todas las auditorías.';
+      const message = toUserFriendlyMessage(error, 'No se pudieron eliminar todas las auditorías.');
       writeStatus(message, true);
     }
+  });
+
+  cancelButton.addEventListener('click', async () => {
+    await requestAuditCancel();
   });
 
   form.siteName.addEventListener('input', renderEffectiveConfig);
@@ -130,7 +146,10 @@ function bindEvents() {
     };
 
     toggleBusy(true);
-    writeStatus('Lanzando auditoría. Este proceso puede tardar varios minutos...');
+    toggleCancelButton(true, false);
+    runResult.hidden = true;
+    progressPanel.hidden = false;
+    writeStatus('Lanzando auditoría. Preparando seguimiento de progreso...');
 
     try {
       const response = await fetch('/api/audit', {
@@ -141,22 +160,37 @@ function bindEvents() {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'No se pudo ejecutar la auditoría.');
+        if (response.status === 409 && data.auditId) {
+          currentAuditId = data.auditId;
+          writeStatus(
+            data.message || 'Ya hay una auditoría en ejecución. Mostrando progreso actual.',
+          );
+          startAuditPolling();
+          await pollAuditStatus();
+          return;
+        }
+
+        throw new Error(data.message || 'No se pudo ejecutar la auditoría.');
       }
 
-      writeStatus(result.message || 'Auditoría completada.');
-      showResult(result);
-      await loadHistory();
+      if (!data.auditId) {
+        throw new Error('No se recibió identificador de auditoría.');
+      }
+
+      currentAuditId = data.auditId;
+      writeStatus(data.message || 'Auditoría en ejecución.');
+      startAuditPolling();
+      await pollAuditStatus();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error inesperado al ejecutar la auditoría.';
+      const message = toUserFriendlyMessage(error, 'Error inesperado al ejecutar la auditoría.');
       writeStatus(message, true);
-      runResult.hidden = true;
-    } finally {
       toggleBusy(false);
+      toggleCancelButton(false, false);
+      stopAuditPolling();
+      currentAuditId = null;
     }
   });
 }
@@ -185,8 +219,7 @@ async function loadOptions() {
     renderAxeTags(data.axeTags || []);
     renderViewports(data.viewports || []);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Error cargando opciones de formulario.';
+    const message = toUserFriendlyMessage(error, 'Error al cargar las opciones del formulario.');
     writeStatus(message, true);
   }
 }
@@ -414,8 +447,10 @@ function renderHistory(items) {
       try {
         await deleteRun(item.runId);
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'No se pudo eliminar el run seleccionado.';
+        const message = toUserFriendlyMessage(
+          error,
+          'No se pudo eliminar la auditoría seleccionada.',
+        );
         writeStatus(message, true);
       }
     });
@@ -489,5 +524,262 @@ function toggleBusy(busy) {
 
 function writeStatus(message, isError = false) {
   statusNode.textContent = message;
-  statusNode.style.color = isError ? '#8f1a00' : 'var(--ink-muted)';
+  statusNode.style.color = isError ? '#8f1a00' : 'var(--text-muted)';
+}
+
+function resetProgressPanel() {
+  progressPanel.hidden = true;
+  progressPercent.textContent = '0%';
+  progressMessage.textContent = 'Esperando inicio...';
+  progressEta.textContent = 'Estimando tiempo restante...';
+  progressTrack.value = 0;
+  progressTasks.innerHTML = '';
+}
+
+function toggleCancelButton(visible, cancelling) {
+  cancelButton.hidden = !visible;
+  cancelButton.disabled = !visible || cancelling;
+  cancelButton.textContent = cancelling ? 'Cancelando...' : 'Cancelar auditoría';
+}
+
+function startAuditPolling() {
+  stopAuditPolling();
+
+  auditPollTimer = window.setInterval(() => {
+    void pollAuditStatus();
+  }, POLL_INTERVAL_MS);
+}
+
+function stopAuditPolling() {
+  if (auditPollTimer) {
+    clearInterval(auditPollTimer);
+    auditPollTimer = null;
+  }
+}
+
+async function pollAuditStatus() {
+  if (!currentAuditId) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/audit/${encodeURIComponent(currentAuditId)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'No se pudo consultar el estado de la auditoría.');
+    }
+
+    applyAuditStatus(data);
+
+    if (data.status === 'running') {
+      return;
+    }
+
+    stopAuditPolling();
+    toggleBusy(false);
+    toggleCancelButton(false, false);
+
+    if (data.status === 'completed' && data.result) {
+      showResult(data.result);
+      writeStatus(data.message || 'Auditoría finalizada.');
+      await loadHistory();
+    } else if (data.status === 'cancelled') {
+      runResult.hidden = true;
+      writeStatus(data.message || 'Auditoría cancelada.');
+    } else {
+      runResult.hidden = true;
+      writeStatus(
+        data.message ||
+          toUserFriendlyMessage(data.error, 'La auditoría finalizó con un error técnico.'),
+        true,
+      );
+    }
+
+    currentAuditId = null;
+  } catch (error) {
+    stopAuditPolling();
+    toggleBusy(false);
+    toggleCancelButton(false, false);
+    progressEta.textContent = 'Seguimiento en vivo no disponible temporalmente.';
+    progressMessage.textContent = 'No se pudo actualizar el progreso en tiempo real.';
+    const message = toUserFriendlyMessage(
+      error,
+      'No se pudo actualizar el progreso de la auditoría.',
+    );
+    writeStatus(message, true);
+    currentAuditId = null;
+  }
+}
+
+function applyAuditStatus(status) {
+  progressPanel.hidden = false;
+
+  const percent = Number.isFinite(status.progressPercent)
+    ? Math.max(0, Math.min(100, Math.floor(status.progressPercent)))
+    : 0;
+
+  progressPercent.textContent = `${percent}%`;
+  progressTrack.value = percent;
+  progressMessage.textContent = status.message || 'Ejecutando auditoría...';
+  progressEta.textContent = formatEtaText(status);
+
+  renderProgressTasks(status.tasks || []);
+
+  if (status.cancelRequested && status.status === 'running') {
+    toggleCancelButton(true, true);
+  }
+}
+
+function formatEtaText(status) {
+  if (status.status === 'completed') {
+    return 'Tiempo restante: 0s · auditoría completada.';
+  }
+
+  if (status.status === 'cancelled') {
+    return 'Tiempo restante: no aplica · auditoría cancelada.';
+  }
+
+  if (status.status === 'failed') {
+    return 'Tiempo restante: no disponible · auditoría con error.';
+  }
+
+  if (status.estimatedRemainingSeconds == null) {
+    if ((status.completedJobs || 0) === 0) {
+      return 'Estimando tiempo restante...';
+    }
+
+    return 'Tiempo restante: calculando con más datos...';
+  }
+
+  return `Tiempo restante estimado: ${formatDuration(status.estimatedRemainingSeconds)}`;
+}
+
+function formatDuration(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remSeconds = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${remSeconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${remSeconds}s`;
+  }
+
+  return `${remSeconds}s`;
+}
+
+function renderProgressTasks(tasks) {
+  progressTasks.innerHTML = '';
+
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return;
+  }
+
+  for (const task of tasks) {
+    const li = document.createElement('li');
+    li.className = 'progress-task';
+    li.dataset.status = task.status || 'pending';
+
+    const statusDot = document.createElement('span');
+    statusDot.className = 'progress-task-status';
+    statusDot.setAttribute('aria-hidden', 'true');
+
+    const textWrap = document.createElement('div');
+
+    const title = document.createElement('p');
+    title.className = 'progress-task-title';
+    title.textContent = `${task.label} · ${translateTaskStatus(task.status)}`;
+
+    textWrap.appendChild(title);
+
+    if (task.detail) {
+      const detail = document.createElement('p');
+      detail.className = 'progress-task-detail';
+      detail.textContent = task.detail;
+      textWrap.appendChild(detail);
+    }
+
+    li.appendChild(statusDot);
+    li.appendChild(textWrap);
+    progressTasks.appendChild(li);
+  }
+}
+
+function translateTaskStatus(status) {
+  switch (status) {
+    case 'running':
+      return 'en curso';
+    case 'completed':
+      return 'completada';
+    case 'failed':
+      return 'con error';
+    case 'cancelled':
+      return 'cancelada';
+    default:
+      return 'pendiente';
+  }
+}
+
+async function requestAuditCancel() {
+  if (!currentAuditId) {
+    return;
+  }
+
+  try {
+    toggleCancelButton(true, true);
+
+    const response = await fetch(`/api/audit/${encodeURIComponent(currentAuditId)}/cancel`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'No se pudo solicitar la cancelación.');
+    }
+
+    writeStatus(data.message || 'Cancelación solicitada.');
+  } catch (error) {
+    toggleCancelButton(true, false);
+    const message = toUserFriendlyMessage(error, 'No se pudo solicitar la cancelación.');
+    writeStatus(message, true);
+  }
+}
+
+function toUserFriendlyMessage(error, fallbackMessage) {
+  let rawMessage = fallbackMessage;
+
+  if (typeof error === 'string') {
+    rawMessage = error;
+  } else if (error instanceof Error) {
+    rawMessage = error.message;
+  }
+
+  const text = (rawMessage || '').toLowerCase();
+
+  if (text.includes('failed to fetch') || text.includes('networkerror')) {
+    return 'No se pudo conectar con el servidor local de la landing. Verifica que esté ejecutándose.';
+  }
+
+  if (text.includes('unexpected end of json') || text.includes('json')) {
+    return 'El servidor devolvió una respuesta inválida. Inténtalo de nuevo en unos segundos.';
+  }
+
+  if (text.includes('aborterror')) {
+    return 'La operación se interrumpió antes de completarse.';
+  }
+
+  if (text.includes('timeout')) {
+    return 'La operación tardó demasiado en responder. Intenta de nuevo.';
+  }
+
+  return rawMessage || fallbackMessage;
 }

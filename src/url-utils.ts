@@ -26,6 +26,7 @@ const SKIP_FILE_EXTENSIONS = new Set([
   'js',
   'json',
   'xml',
+  'gpx',
 ]);
 
 const TRACKING_PARAMS = [
