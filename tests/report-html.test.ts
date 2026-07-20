@@ -52,6 +52,8 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /<option value="serious">Crítico<\/option>/);
     assert.match(html, /<option value="moderate">Medio<\/option>/);
     assert.match(html, /<option value="minor">Bajo<\/option>/);
+    assert.match(html, /class="finding-rule-group" data-rule-id="color-contrast"/);
+    assert.match(html, /class="finding-rule-summary"/);
     assert.match(html, /IRA-001/);
     assert.match(html, /<span class="meta-label">Responsable<\/span>/);
     assert.match(html, /<span class="meta-label">Fecha de validación<\/span>/);
@@ -131,7 +133,9 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(js, /handleStatusDateTransition/);
     assert.match(js, /syncDateBlocks/);
     assert.match(js, /wireAccordions/);
+    assert.match(js, /syncRuleGroupVisibility/);
     assert.match(css, /findings-legend/);
+    assert.match(css, /finding-rule-group/);
     assert.match(css, /report-header/);
     assert.match(css, /report-header-meta/);
     assert.match(css, /wcag-link/);

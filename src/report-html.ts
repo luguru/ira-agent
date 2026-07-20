@@ -289,114 +289,40 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
 
   const viewports = getUniqueSortedValues(findings.map((finding) => finding.viewport));
   const impacts = getUniqueSortedValues(findings.map((finding) => finding.impact ?? 'sin impacto'));
+  const findingsWithIds = findings.map((finding, index) => ({
+    incidentId: formatIncidentId(index + 1),
+    finding,
+  }));
+  const findingsByRule = groupBy(findingsWithIds, (entry) => entry.finding.ruleId);
 
-  const cards = findings
-    .map((finding, index) => {
-      const incidentId = formatIncidentId(index + 1);
-      const wcag = renderWcagCriteria(finding.wcag);
-      const selector = finding.selector || '-';
-      const impact = finding.impact ?? 'sin impacto';
-      const impactLabel = formatImpactLabel(finding.impact);
-      const title = localizeTechnicalText(finding.help);
-      const workflowStatus = mapFindingStatusToWorkflowStatus(finding.status);
-      const workflowStatusLabel = formatWorkflowStatusLabel(workflowStatus);
-      const responsable = inferOwnerArea(finding);
-      const wcagLevel = inferWcagLevel(finding.tags);
-      const ubicacion = buildLocationLabel(finding);
-      const perfilAfectado = inferAffectedProfiles(finding);
-      const evidencia = buildEvidence(finding, selector);
-      const resultadoEsperado = buildExpectedOutcome(finding.help);
-      const recomendacion = buildRecommendation(finding.message, finding.helpUrl);
-      const fechaDeteccionIso = formatDateIso(detectedAt);
-      const fechaDeteccion = formatDateEs(detectedAt);
-      const panelId = `panel-${incidentId}`;
-      const toggleId = `toggle-${incidentId}`;
+  const groupedCards = [...findingsByRule.entries()]
+    .sort(([ruleA, findingsA], [ruleB, findingsB]) => {
+      if (findingsB.length !== findingsA.length) {
+        return findingsB.length - findingsA.length;
+      }
 
-      return `<article class="finding-card" data-incident-id="${escapeHtml(incidentId)}" data-viewport="${escapeHtml(finding.viewport)}" data-workflow-status="${escapeHtml(workflowStatus)}" data-impact="${escapeHtml(impact)}" aria-hidden="false">
-        <header class="finding-head">
-          <button
-            id="${escapeHtml(toggleId)}"
-            class="accordion-toggle"
-            type="button"
-            data-role="accordion-toggle"
-            aria-expanded="false"
-            aria-controls="${escapeHtml(panelId)}"
-          >
-            <span class="status-icon" data-role="status-icon" aria-hidden="true">${escapeHtml(formatWorkflowStatusIcon(workflowStatus))}</span>
-            <span class="finding-head-main">
-              <span class="finding-title">${escapeHtml(title)}</span>
-              <span class="finding-head-meta">
-                <span class="chip chip-id">${escapeHtml(incidentId)}</span>
-                <span class="chip">${escapeHtml(impactLabel)}</span>
-                <span class="chip chip-rule"><code>${escapeHtml(finding.ruleId)}</code></span>
-                <span class="chip chip-status-current" data-role="workflow-status-label">${escapeHtml(workflowStatusLabel)}</span>
-              </span>
-            </span>
-          </button>
-        </header>
-        <div class="finding-body" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(toggleId)}" hidden>
-          <div class="finding-meta finding-fields-grid">
-            <div class="meta-block">
-              <span class="meta-label">WCAG</span>
-              <span class="meta-value">${wcag}</span>
-            </div>
-            <div class="meta-block">
-              <span class="meta-label">Nivel WCAG</span>
-              <span class="meta-value">${escapeHtml(wcagLevel)}</span>
-            </div>
-            <label class="meta-block meta-block-editable">
-              <span class="meta-label">Estado</span>
-              <select
-                id="estado-${escapeHtml(incidentId)}"
-                class="incident-input incident-input-status"
-                data-field="workflow-status"
-                name="estado-${escapeHtml(incidentId)}"
-              >
-                ${renderSelectOptions(INCIDENT_STATUS_OPTIONS, workflowStatus)}
-              </select>
-            </label>
-            <div class="meta-block meta-block-wide">
-              <span class="meta-label">Ubicación</span>
-              <span class="meta-value">${escapeHtml(ubicacion)}</span>
-            </div>
-            <div class="meta-block">
-              <span class="meta-label">Perfil afectado</span>
-              <span class="meta-value">${escapeHtml(perfilAfectado)}</span>
-            </div>
-            <div class="meta-block meta-block-wide">
-              <span class="meta-label">Resultado esperado</span>
-              <span class="meta-value">${escapeHtml(resultadoEsperado)}</span>
-            </div>
-            <div class="meta-block">
-              <span class="meta-label">Recomendación</span>
-              <span class="meta-value">${renderRecommendation(recomendacion)}</span>
-            </div>
-            <div class="meta-block meta-block-wide">
-              <span class="meta-label">Evidencia</span>
-              <pre class="meta-value-pre">${escapeHtml(evidencia)}</pre>
-            </div>
-            <label class="meta-block meta-block-editable">
-              <span class="meta-label">Responsable</span>
-              <select class="incident-input" data-field="owner" name="responsable-${escapeHtml(incidentId)}">
-                ${renderSelectOptions(OWNER_OPTIONS, responsable)}
-              </select>
-            </label>
-            <div class="meta-block" data-role="detected-date-block">
-              <span class="meta-label">Fecha de detección</span>
-              <span class="meta-value" data-role="detected-date-value" data-iso-date="${escapeHtml(fechaDeteccionIso)}">${escapeHtml(fechaDeteccion)}</span>
-            </div>
-            <div class="meta-block" data-role="reopened-date-block" hidden>
-              <span class="meta-label">Fecha de reapertura</span>
-              <span class="meta-value" data-role="reopened-date-value"></span>
-            </div>
-            <div class="meta-block" data-role="validation-date-block" hidden>
-              <span class="meta-label">Fecha de validación</span>
-              <span class="meta-value" data-role="validation-date-value"></span>
-            </div>
-            <div class="meta-block meta-block-placeholder" aria-hidden="true"></div>
-          </div>
-        </div>
-      </article>`;
+      return ruleA.localeCompare(ruleB);
+    })
+    .map(([ruleId, entries]) => {
+      const firstFinding = entries[0]?.finding;
+      const impactLabel = formatImpactLabel(firstFinding?.impact ?? null);
+      const title = localizeTechnicalText(firstFinding?.help ?? 'Sin detalle técnico');
+      const affectedUrls = new Set(entries.map((entry) => entry.finding.url)).size;
+      const cards = entries
+        .map((entry) => renderFindingCard(entry.finding, entry.incidentId, detectedAt))
+        .join('');
+
+      return `<details class="finding-rule-group" data-rule-id="${escapeHtml(ruleId)}">
+        <summary class="finding-rule-summary">
+          <span class="finding-rule-title"><code>${escapeHtml(ruleId)}</code> · ${escapeHtml(title)}</span>
+          <span class="finding-rule-meta">
+            <span class="chip">${entries.length} incidencias</span>
+            <span class="chip">${affectedUrls} URLs</span>
+            <span class="chip">Impacto: ${escapeHtml(impactLabel)}</span>
+          </span>
+        </summary>
+        <div class="finding-rule-body">${cards}</div>
+      </details>`;
     })
     .join('');
 
@@ -427,7 +353,114 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
     </div>
     <p id="finding-count" class="findings-count"></p>
   </div>
-  <div class="findings-layout">${cards}</div>`;
+  <div class="findings-layout">${groupedCards}</div>`;
+}
+
+function renderFindingCard(finding: Finding, incidentId: string, detectedAt: string): string {
+  const wcag = renderWcagCriteria(finding.wcag);
+  const selector = finding.selector || '-';
+  const impact = finding.impact ?? 'sin impacto';
+  const impactLabel = formatImpactLabel(finding.impact);
+  const title = localizeTechnicalText(finding.help);
+  const workflowStatus = mapFindingStatusToWorkflowStatus(finding.status);
+  const workflowStatusLabel = formatWorkflowStatusLabel(workflowStatus);
+  const responsable = inferOwnerArea(finding);
+  const wcagLevel = inferWcagLevel(finding.tags);
+  const ubicacion = buildLocationLabel(finding);
+  const perfilAfectado = inferAffectedProfiles(finding);
+  const evidencia = buildEvidence(finding, selector);
+  const resultadoEsperado = buildExpectedOutcome(finding.help);
+  const recomendacion = buildRecommendation(finding.message, finding.helpUrl);
+  const fechaDeteccionIso = formatDateIso(detectedAt);
+  const fechaDeteccion = formatDateEs(detectedAt);
+  const panelId = `panel-${incidentId}`;
+  const toggleId = `toggle-${incidentId}`;
+
+  return `<article class="finding-card" data-incident-id="${escapeHtml(incidentId)}" data-viewport="${escapeHtml(finding.viewport)}" data-workflow-status="${escapeHtml(workflowStatus)}" data-impact="${escapeHtml(impact)}" aria-hidden="false">
+    <header class="finding-head">
+      <button
+        id="${escapeHtml(toggleId)}"
+        class="accordion-toggle"
+        type="button"
+        data-role="accordion-toggle"
+        aria-expanded="false"
+        aria-controls="${escapeHtml(panelId)}"
+      >
+        <span class="status-icon" data-role="status-icon" aria-hidden="true">${escapeHtml(formatWorkflowStatusIcon(workflowStatus))}</span>
+        <span class="finding-head-main">
+          <span class="finding-title">${escapeHtml(title)}</span>
+          <span class="finding-head-meta">
+            <span class="chip chip-id">${escapeHtml(incidentId)}</span>
+            <span class="chip">${escapeHtml(impactLabel)}</span>
+            <span class="chip chip-rule"><code>${escapeHtml(finding.ruleId)}</code></span>
+            <span class="chip chip-status-current" data-role="workflow-status-label">${escapeHtml(workflowStatusLabel)}</span>
+          </span>
+        </span>
+      </button>
+    </header>
+    <div class="finding-body" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(toggleId)}" hidden>
+      <div class="finding-meta finding-fields-grid">
+        <div class="meta-block">
+          <span class="meta-label">WCAG</span>
+          <span class="meta-value">${wcag}</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Nivel WCAG</span>
+          <span class="meta-value">${escapeHtml(wcagLevel)}</span>
+        </div>
+        <label class="meta-block meta-block-editable">
+          <span class="meta-label">Estado</span>
+          <select
+            id="estado-${escapeHtml(incidentId)}"
+            class="incident-input incident-input-status"
+            data-field="workflow-status"
+            name="estado-${escapeHtml(incidentId)}"
+          >
+            ${renderSelectOptions(INCIDENT_STATUS_OPTIONS, workflowStatus)}
+          </select>
+        </label>
+        <div class="meta-block meta-block-wide">
+          <span class="meta-label">Ubicación</span>
+          <span class="meta-value">${escapeHtml(ubicacion)}</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Perfil afectado</span>
+          <span class="meta-value">${escapeHtml(perfilAfectado)}</span>
+        </div>
+        <div class="meta-block meta-block-wide">
+          <span class="meta-label">Resultado esperado</span>
+          <span class="meta-value">${escapeHtml(resultadoEsperado)}</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Recomendación</span>
+          <span class="meta-value">${renderRecommendation(recomendacion)}</span>
+        </div>
+        <div class="meta-block meta-block-wide">
+          <span class="meta-label">Evidencia</span>
+          <pre class="meta-value-pre">${escapeHtml(evidencia)}</pre>
+        </div>
+        <label class="meta-block meta-block-editable">
+          <span class="meta-label">Responsable</span>
+          <select class="incident-input" data-field="owner" name="responsable-${escapeHtml(incidentId)}">
+            ${renderSelectOptions(OWNER_OPTIONS, responsable)}
+          </select>
+        </label>
+        <div class="meta-block" data-role="detected-date-block">
+          <span class="meta-label">Fecha de detección</span>
+          <span class="meta-value" data-role="detected-date-value" data-iso-date="${escapeHtml(fechaDeteccionIso)}">${escapeHtml(fechaDeteccion)}</span>
+        </div>
+        <div class="meta-block" data-role="reopened-date-block" hidden>
+          <span class="meta-label">Fecha de reapertura</span>
+          <span class="meta-value" data-role="reopened-date-value"></span>
+        </div>
+        <div class="meta-block" data-role="validation-date-block" hidden>
+          <span class="meta-label">Fecha de validación</span>
+          <span class="meta-value" data-role="validation-date-value"></span>
+        </div>
+        <div class="meta-block meta-block-placeholder" aria-hidden="true"></div>
+      </div>
+    </div>
+  </article>`;
 }
 
 function renderFilterOptions(values: string[]): string {

@@ -214,6 +214,74 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     margin-top: var(--space-md);
   }
 
+  .finding-rule-group {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-surface) 96%, #ecfeff);
+    overflow: clip;
+  }
+
+  .finding-rule-group.is-hidden {
+    display: none;
+  }
+
+  .finding-rule-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-xs);
+    padding: 0.72rem 0.9rem;
+    cursor: pointer;
+    list-style: none;
+    background: color-mix(in srgb, var(--bg-muted) 88%, #f0fdfa);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .finding-rule-group[open] > .finding-rule-summary {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--border-soft) 72%, transparent);
+  }
+
+  .finding-rule-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .finding-rule-summary::after {
+    content: '▾';
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: end;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .finding-rule-group[open] .finding-rule-summary::after {
+    transform: rotate(180deg);
+  }
+
+  .finding-rule-title {
+    grid-column: 1;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+
+  .finding-rule-meta {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .finding-rule-body {
+    display: grid;
+    gap: var(--space-md);
+    padding: var(--space-sm);
+  }
+
   .findings-tools {
     display: grid;
     gap: var(--space-sm);
