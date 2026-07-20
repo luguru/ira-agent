@@ -60,7 +60,40 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check dependency review support
+        id: support
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          response="$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GH_REPO}")"
+
+          dependency_graph_status="$(printf '%s' "${response}" | jq -r '.security_and_analysis.dependency_graph.status // "unknown"')"
+          advanced_security_status="$(printf '%s' "${response}" | jq -r '.security_and_analysis.advanced_security.status // "unknown"')"
+
+          supported="false"
+          if [ "${dependency_graph_status}" = "enabled" ] && [ "${advanced_security_status}" = "enabled" ]; then
+            supported="true"
+          fi
+
+          echo "dependency_graph_status=${dependency_graph_status}" >> "$GITHUB_OUTPUT"
+          echo "advanced_security_status=${advanced_security_status}" >> "$GITHUB_OUTPUT"
+          echo "supported=${supported}" >> "$GITHUB_OUTPUT"
+
       - name: Review dependency changes
+        if: steps.support.outputs.supported == 'true'
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: moderate
+
+      - name: Skip dependency review
+        if: steps.support.outputs.supported != 'true'
+        run: |
+          echo "::notice title=Dependency review omitted::Dependency Review no disponible para este repositorio."
+          echo "Dependency graph: ${{ steps.support.outputs.dependency_graph_status }}"
+          echo "Advanced Security: ${{ steps.support.outputs.advanced_security_status }}"
