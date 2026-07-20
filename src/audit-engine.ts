@@ -52,7 +52,7 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
     console.log('Rastreando sitio...');
     const urls = await crawlSite(browser, config);
 
-    console.log(`URLs descubiertas para analisis: ${urls.length}`);
+    console.log(`URLs descubiertas para análisis: ${urls.length}`);
 
     const jobs: AuditJob[] = urls.flatMap((url) =>
       config.viewports.map((viewport) => ({
@@ -61,7 +61,7 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
       })),
     );
 
-    console.log(`Analisis a ejecutar: ${jobs.length}\n`);
+    console.log(`Análisis a ejecutar: ${jobs.length}\n`);
 
     const results = await mapLimit(jobs, config.concurrency, async (job, index) => {
       console.log(`[${index + 1}/${jobs.length}] ${job.viewport.name} ${job.url}`);
@@ -125,7 +125,7 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
         }
       } catch (error) {
         console.warn('\n[IA] No se ha podido generar el resumen IA.');
-        console.warn('[IA] La auditoria tecnica se ha completado correctamente.');
+        console.warn('[IA] La auditoría técnica se ha completado correctamente.');
         console.warn(formatError(error));
       }
     }

@@ -77,7 +77,7 @@ export async function readRunHistory(historyFilePath: string): Promise<RunHistor
         entries.push(parsed);
       }
     } catch {
-      // Ignora lineas invalidas para no romper la ejecucion.
+      // Ignora líneas inválidas para no romper la ejecución.
     }
   }
 

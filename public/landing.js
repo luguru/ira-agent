@@ -33,11 +33,11 @@ let resolvedSiteNameDefault = 'Sitio de prueba';
 let siteNameDefaultTimer = null;
 
 const AXE_TAG_DESCRIPTIONS = {
-  wcag2a: 'Controles basicos de accesibilidad (nivel A de WCAG 2.0).',
+  wcag2a: 'Controles básicos de accesibilidad (nivel A de WCAG 2.0).',
   wcag2aa: 'Controles recomendados para un buen nivel general (AA de WCAG 2.0).',
-  wcag21a: 'Requisitos base adicionales para movil y navegacion moderna (A de WCAG 2.1).',
-  wcag21aa: 'Requisitos recomendados adicionales para movil y uso diario (AA de WCAG 2.1).',
-  wcag22a: 'Nuevos requisitos base de WCAG 2.2 (nivel A), centrados en interaccion y usabilidad.',
+  wcag21a: 'Requisitos base adicionales para móvil y navegación moderna (A de WCAG 2.1).',
+  wcag21aa: 'Requisitos recomendados adicionales para móvil y uso diario (AA de WCAG 2.1).',
+  wcag22a: 'Nuevos requisitos base de WCAG 2.2 (nivel A), centrados en interacción y usabilidad.',
   wcag22aa: 'Nuevos requisitos recomendados de WCAG 2.2 (nivel AA).',
   'EN-301-549': 'Conjunto de comprobaciones alineadas con normativa europea de accesibilidad.',
 };
@@ -72,7 +72,7 @@ function bindEvents() {
 
   historyDeleteAllButton.addEventListener('click', async () => {
     const firstConfirm = window.confirm(
-      'Se eliminaran todas las auditorias listadas en el historial. Esta accion no se puede deshacer.',
+      'Se eliminarán todas las auditorías listadas en el historial. Esta acción no se puede deshacer.',
     );
 
     if (!firstConfirm) {
@@ -80,7 +80,7 @@ function bindEvents() {
     }
 
     const secondConfirm = window.confirm(
-      'Confirmacion final: vas a eliminar todas las auditorias del historial. Continuar?',
+      'Confirmación final: vas a eliminar todas las auditorías del historial. ¿Continuar?',
     );
 
     if (!secondConfirm) {
@@ -91,7 +91,7 @@ function bindEvents() {
       await deleteAllRuns();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'No se pudieron eliminar todas las auditorias.';
+        error instanceof Error ? error.message : 'No se pudieron eliminar todas las auditorías.';
       writeStatus(message, true);
     }
   });
@@ -114,7 +114,7 @@ function bindEvents() {
     const url = form.url.value.trim();
 
     if (!url) {
-      writeStatus('Debes indicar una URL valida.', true);
+      writeStatus('Debes indicar una URL válida.', true);
       form.url.focus();
       return;
     }
@@ -130,7 +130,7 @@ function bindEvents() {
     };
 
     toggleBusy(true);
-    writeStatus('Lanzando auditoria. Este proceso puede tardar varios minutos...');
+    writeStatus('Lanzando auditoría. Este proceso puede tardar varios minutos...');
 
     try {
       const response = await fetch('/api/audit', {
@@ -144,15 +144,15 @@ function bindEvents() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'No se pudo ejecutar la auditoria.');
+        throw new Error(result.message || 'No se pudo ejecutar la auditoría.');
       }
 
-      writeStatus(result.message || 'Auditoria completada.');
+      writeStatus(result.message || 'Auditoría completada.');
       showResult(result);
       await loadHistory();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Error inesperado al ejecutar la auditoria.';
+        error instanceof Error ? error.message : 'Error inesperado al ejecutar la auditoría.';
       writeStatus(message, true);
       runResult.hidden = true;
     } finally {
@@ -193,10 +193,10 @@ async function loadOptions() {
 
 function renderDefaults(data) {
   resolvedSiteNameDefault = data.defaults.siteName || 'Sitio de prueba';
-  siteNameHint.textContent = `Si lo dejas vacio, se usara por defecto: ${resolvedSiteNameDefault}.`;
-  maxPagesHint.textContent = `Si lo dejas vacio, se usara por defecto: ${data.defaults.maxPages}.`;
-  maxDepthHint.textContent = `Si lo dejas vacio, se usara por defecto: ${data.defaults.maxDepth}.`;
-  fullSiteHint.textContent = `Al activar este modo, maxPages y maxDepth se fijan automaticamente a ${data.fullSite.maxPages}.`;
+  siteNameHint.textContent = `Si lo dejas vacío, se usará por defecto: ${resolvedSiteNameDefault}.`;
+  maxPagesHint.textContent = `Si lo dejas vacío, se usará por defecto: ${data.defaults.maxPages}.`;
+  maxDepthHint.textContent = `Si lo dejas vacío, se usará por defecto: ${data.defaults.maxDepth}.`;
+  fullSiteHint.textContent = `Al activar este modo, maxPages y maxDepth se fijan automáticamente a ${data.fullSite.maxPages}.`;
 
   maxPagesInput.placeholder = String(data.defaults.maxPages);
   maxDepthInput.placeholder = String(data.defaults.maxDepth);
@@ -208,7 +208,7 @@ function renderAxeTags(tags) {
   for (const tag of tags) {
     const metaText =
       AXE_TAG_DESCRIPTIONS[tag] ||
-      'Conjunto de reglas automaticas de accesibilidad para este criterio.';
+      'Conjunto de reglas automáticas de accesibilidad para este criterio.';
     axeTagsContainer.appendChild(createCheckItem('axeTags', tag, tag, metaText, true));
   }
 
@@ -298,7 +298,7 @@ async function updateResolvedSiteNameDefault() {
 
   if (!url) {
     resolvedSiteNameDefault = 'Sitio de prueba';
-    siteNameHint.textContent = `Si lo dejas vacio, se usara por defecto: ${resolvedSiteNameDefault}.`;
+    siteNameHint.textContent = `Si lo dejas vacío, se usará por defecto: ${resolvedSiteNameDefault}.`;
     renderEffectiveConfig();
     return;
   }
@@ -317,7 +317,7 @@ async function updateResolvedSiteNameDefault() {
     resolvedSiteNameDefault = 'Sitio de prueba';
   }
 
-  siteNameHint.textContent = `Si lo dejas vacio, se usara por defecto: ${resolvedSiteNameDefault}.`;
+  siteNameHint.textContent = `Si lo dejas vacío, se usará por defecto: ${resolvedSiteNameDefault}.`;
   renderEffectiveConfig();
 }
 
@@ -338,9 +338,9 @@ function showResult(result) {
   runSummary.textContent = [
     `Run: ${result.runId}`,
     `URLs descubiertas: ${result.pagesDiscovered}`,
-    `Analisis ejecutados: ${result.pagesAnalyzed}`,
+    `Análisis ejecutados: ${result.pagesAnalyzed}`,
     `Incidencias: ${result.metrics?.violations ?? 0}`,
-    `Revision manual: ${result.metrics?.needsReview ?? 0}`,
+    `Revisión manual: ${result.metrics?.needsReview ?? 0}`,
   ].join(' | ');
 
   reportLink.href = result.reportUrl;
@@ -367,7 +367,7 @@ function renderHistory(items) {
 
   if (!Array.isArray(items) || items.length === 0) {
     historyEmpty.hidden = false;
-    historyEmpty.textContent = 'Todavia no hay ejecuciones registradas.';
+    historyEmpty.textContent = 'Todavía no hay ejecuciones registradas.';
     historyList.hidden = true;
     historyDeleteAllButton.disabled = true;
     return;
@@ -387,7 +387,7 @@ function renderHistory(items) {
 
     const counts = document.createElement('p');
     counts.className = 'history-item-meta';
-    counts.textContent = `Incidencias: ${item.metrics.violations} · Revision: ${item.metrics.needsReview} · Errores tecnicos: ${item.metrics.technicalErrors}`;
+    counts.textContent = `Incidencias: ${item.metrics.violations} · Revisión: ${item.metrics.needsReview} · Errores técnicos: ${item.metrics.technicalErrors}`;
 
     const actions = document.createElement('div');
     actions.className = 'history-item-actions';
@@ -404,7 +404,7 @@ function renderHistory(items) {
     deleteButton.textContent = 'Eliminar';
     deleteButton.addEventListener('click', async () => {
       const confirmed = window.confirm(
-        `Se eliminara el run ${item.runId}. Esta accion no se puede deshacer.`,
+        `Se eliminará el run ${item.runId}. Esta acción no se puede deshacer.`,
       );
 
       if (!confirmed) {
@@ -461,10 +461,10 @@ async function deleteAllRuns() {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'No se pudieron eliminar todas las auditorias.');
+    throw new Error(data.message || 'No se pudieron eliminar todas las auditorías.');
   }
 
-  writeStatus(data.message || 'Auditorias eliminadas correctamente.');
+  writeStatus(data.message || 'Auditorías eliminadas correctamente.');
   runResult.hidden = true;
   await loadHistory();
 }
@@ -484,7 +484,7 @@ function formatDate(isoDate) {
 
 function toggleBusy(busy) {
   submitButton.disabled = busy;
-  submitButton.textContent = busy ? 'Ejecutando auditoria...' : 'Iniciar auditoria';
+  submitButton.textContent = busy ? 'Ejecutando auditoría...' : 'Iniciar auditoría';
 }
 
 function writeStatus(message, isError = false) {

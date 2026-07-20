@@ -80,7 +80,7 @@ function parseHttpUrl(value: string, name: string): URL {
   try {
     url = new URL(value);
   } catch {
-    throw new Error(`${name} no es una URL valida`);
+    throw new Error(`${name} no es una URL válida`);
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
