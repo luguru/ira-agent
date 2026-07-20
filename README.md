@@ -59,9 +59,9 @@ Desde la landing puedes indicar:
 - `maxPages` y `maxDepth` (opcionales, con fallback a valores por defecto de `audit.config.json`).
 - `Analizar sitio completo` (fija `maxPages` y `maxDepth` a `99999` y desactiva ambos inputs).
 - Selección de `axeTags` por checkbox.
-- Los `axeTags` muestran explicacion en lenguaje simple para facilitar su uso a perfiles no tecnicos.
+- Los `axeTags` muestran explicación en lenguaje simple para facilitar su uso a perfiles no técnicos.
 - Selección de `viewports` por checkbox.
-- Historial de ejecuciones previas (solo runs existentes en `runs/`) con acciones para abrir `report.html` en pestaña, eliminar runs individuales y eliminar todas las auditorias listadas.
+- Historial de ejecuciones previas (solo runs existentes en `runs/`) con acciones para abrir `report.html` en pestaña, eliminar runs individuales y eliminar todas las auditorías listadas.
 
 Al ejecutar, el backend genera los mismos artefactos de siempre en `runs/` y devuelve enlace directo a `report.html`.
 
@@ -82,7 +82,7 @@ npm run preview:report
 npm run preview:report:open
 ```
 
-- `test:report`: valida generación de HTML/CSS/JS con fixtures mock.
+- `test:report`: valida la generación de HTML/CSS/JS con fixtures mock.
 - `preview:report`: genera un reporte de ejemplo en `runs/mock-preview/`.
 - `preview:report:open`: genera el mock y abre `report.html` automáticamente (macOS).
 
@@ -93,7 +93,7 @@ Nota de TypeScript:
 
 ## Configuración
 
-La auditoria se define en [audit.config.json](audit.config.json).
+La auditoría se define en [audit.config.json](audit.config.json).
 
 Campos clave:
 

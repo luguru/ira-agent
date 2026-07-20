@@ -76,7 +76,7 @@ async function executeStep(
       await executeWaitStep(page, step, timeout);
       return;
     default:
-      throw new Error(`accion no soportada: ${(step as { action: string }).action}`);
+      throw new Error(`acción no soportada: ${(step as { action: string }).action}`);
   }
 }
 

@@ -1,9 +1,10 @@
-import type { Browser } from 'playwright';
+import type { Browser, BrowserContext } from 'playwright';
+import { assertPublicHttpUrl, fetchPublicText } from './network-security.js';
 import type { AuditConfig } from './types.js';
 import { normalizeUrl, shouldVisitUrl } from './url-utils.js';
 
 const SITEMAP_MAX_DEPTH = 3;
-const SITEMAP_MAX_CHARS = 2_000_000;
+const SITEMAP_MAX_BYTES = 2_000_000;
 
 type QueueItem = {
   url: string;
@@ -63,7 +64,10 @@ export async function crawlSite(browser: Browser, config: AuditConfig): Promise<
       continue;
     }
 
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+      serviceWorkers: 'block',
+    });
+    await installPublicNetworkGuard(context);
     const page = await context.newPage();
 
     try {
@@ -123,15 +127,16 @@ async function readSitemap(
 
   seenSitemaps.add(normalizedSitemapUrl);
 
-  const response = await fetchWithTimeout(normalizedSitemapUrl, config.timeoutMs);
+  const { response, text: xml } = await fetchPublicText(normalizedSitemapUrl, {
+    timeoutMs: config.timeoutMs,
+    maxRedirects: 3,
+    maximumBytes: SITEMAP_MAX_BYTES,
+    headers: {
+      accept: 'application/xml, text/xml, application/rss+xml, text/plain;q=0.8',
+    },
+  });
 
   if (!response.ok) {
-    return [];
-  }
-
-  const xml = await response.text();
-
-  if (xml.length > SITEMAP_MAX_CHARS) {
     return [];
   }
 
@@ -215,16 +220,33 @@ function normalizeAbsoluteUrl(input: string, baseUrl: string): string | null {
   }
 }
 
-async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+async function installPublicNetworkGuard(context: BrowserContext): Promise<void> {
+  await context.route('**/*', async (route) => {
+    try {
+      await assertBrowserRequestUrl(route.request().url());
+      await route.continue();
+    } catch {
+      await route.abort('blockedbyclient').catch(() => undefined);
+    }
+  });
+}
 
+async function assertBrowserRequestUrl(input: string): Promise<void> {
+  let url: URL;
   try {
-    return await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-    });
-  } finally {
-    clearTimeout(timeout);
+    url = new URL(input);
+  } catch {
+    throw new Error('URL de recurso no válida.');
   }
+
+  if (url.protocol === 'http:' || url.protocol === 'https:') {
+    await assertPublicHttpUrl(url.toString());
+    return;
+  }
+
+  if (url.protocol === 'about:' || url.protocol === 'blob:' || url.protocol === 'data:') {
+    return;
+  }
+
+  throw new Error('Protocolo de recurso no permitido: ' + url.protocol);
 }

@@ -25,7 +25,11 @@ export function calculateRunMetrics(run: AuditRun): RunMetrics {
   };
 }
 
-export function buildRunTrend(current: RunMetrics, previous?: RunMetrics, baselineRunId?: string): RunTrend {
+export function buildRunTrend(
+  current: RunMetrics,
+  previous?: RunMetrics,
+  baselineRunId?: string,
+): RunTrend {
   if (!previous) {
     return {
       hasBaseline: false,
@@ -73,7 +77,7 @@ export async function readRunHistory(historyFilePath: string): Promise<RunHistor
         entries.push(parsed);
       }
     } catch {
-      // Ignora lineas invalidas para no romper la ejecucion.
+      // Ignora líneas inválidas para no romper la ejecución.
     }
   }
 

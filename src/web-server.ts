@@ -7,6 +7,7 @@ import process from 'node:process';
 import { createAiSummaryProvider } from './ai-summary-provider.js';
 import { runAudit } from './audit-engine.js';
 import { readConfig, validateConfig } from './config.js';
+import { assertPublicHttpUrl, fetchPublicText } from './network-security.js';
 import { readRunHistory } from './run-metrics.js';
 import type { AuditConfig, ViewportConfig } from './types.js';
 import { getSafeRunId } from './url-utils.js';
@@ -56,7 +57,11 @@ type PublicHistoryEntry = {
 };
 
 const PORT = parsePort(process.env.PORT ?? '4173');
-const FULL_SITE_LIMIT = 99999;
+const HOST = process.env.HOST?.trim() || '127.0.0.1';
+const MAX_PAGES = 1_000;
+const MAX_DEPTH = 20;
+const FULL_SITE_MAX_PAGES = 1_000;
+const FULL_SITE_MAX_DEPTH = 10;
 const CONFIG_PATH = 'audit.config.json';
 const PUBLIC_DIR = path.resolve('public');
 const RUNS_DIR = path.resolve('runs');
@@ -81,8 +86,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Landing IRA disponible en http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Landing IRA disponible en http://${HOST}:${PORT}`);
 });
 
 async function routeRequest(
@@ -90,6 +95,10 @@ async function routeRequest(
   pathname: string,
   response: ServerResponse,
 ): Promise<boolean> {
+  if (request.method === 'POST' || request.method === 'DELETE') {
+    assertSameOriginRequest(request);
+  }
+
   if (await tryServePublicAsset(request.method, pathname, response)) {
     return true;
   }
@@ -124,6 +133,7 @@ async function routeRequest(
   }
 
   if (request.method === 'POST' && pathname === '/api/audit') {
+    assertJsonRequest(request);
     await handleAuditRequest(request, response);
     return true;
   }
@@ -136,10 +146,41 @@ async function routeRequest(
   return false;
 }
 
-async function handleAuditRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
+function assertSameOriginRequest(request: IncomingMessage): void {
+  const origin = request.headers.origin;
+  if (!origin) {
+    return;
+  }
+
+  const host = request.headers.host;
+  if (!host || (origin !== `http://${host}` && origin !== `https://${host}`)) {
+    throw createHttpError(403, 'Origen de petición no permitido.');
+  }
+}
+
+function assertJsonRequest(request: IncomingMessage): void {
+  const contentType = request.headers['content-type'] ?? '';
+  if (!contentType.toLowerCase().startsWith('application/json')) {
+    throw createHttpError(415, 'Content-Type debe ser application/json.');
+  }
+}
+
+async function assertAuditableUrl(value: string): Promise<void> {
+  try {
+    await assertPublicHttpUrl(value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'URL no permitida.';
+    throw createHttpError(400, message);
+  }
+}
+
+async function handleAuditRequest(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
   if (isAuditRunning) {
     sendJson(response, 409, {
-      message: 'Ya hay una auditoria en ejecucion. Espera a que finalice para lanzar otra.',
+      message: 'Ya hay una auditoría en ejecución. Espera a que finalice para lanzar otra.',
     });
     return;
   }
@@ -147,6 +188,13 @@ async function handleAuditRequest(request: IncomingMessage, response: ServerResp
   const payload = (await readJsonBody(request)) as LaunchAuditPayload;
   const baseConfig = await loadBaseConfig();
   const config = buildConfigFromPayload(baseConfig, payload);
+  if (config.maxPages > MAX_PAGES) {
+    throw createHttpError(400, `maxPages no puede superar ${MAX_PAGES}.`);
+  }
+  if (config.maxDepth > MAX_DEPTH) {
+    throw createHttpError(400, `maxDepth no puede superar ${MAX_DEPTH}.`);
+  }
+  await assertAuditableUrl(config.baseUrl);
 
   if (!readOptionalText(payload.siteName)) {
     config.siteName = await resolveSiteNameFromUrl(config.baseUrl);
@@ -166,7 +214,7 @@ async function handleAuditRequest(request: IncomingMessage, response: ServerResp
     const runId = path.basename(execution.outDir);
 
     sendJson(response, 200, {
-      message: 'Auditoria finalizada correctamente.',
+      message: 'Auditoría finalizada correctamente.',
       runId,
       reportUrl: `/runs/${encodeURIComponent(runId)}/report.html`,
       resultUrl: `/runs/${encodeURIComponent(runId)}/result.json`,
@@ -211,7 +259,7 @@ async function serveRunArtifact(pathname: string, response: ServerResponse): Pro
   const targetPath = resolveRunsPath(pathname);
 
   if (!targetPath) {
-    sendJson(response, 400, { message: 'Ruta de artefacto no valida.' });
+    sendJson(response, 400, { message: 'Ruta de artefacto no válida.' });
     return;
   }
 
@@ -242,8 +290,8 @@ function buildPublicOptions(config: AuditConfig): PublicOptions {
       maxDepth: config.maxDepth,
     },
     fullSite: {
-      maxPages: FULL_SITE_LIMIT,
-      maxDepth: FULL_SITE_LIMIT,
+      maxPages: FULL_SITE_MAX_PAGES,
+      maxDepth: FULL_SITE_MAX_DEPTH,
     },
     axeTags: [...config.axeTags],
     viewports: config.viewports.map((viewport) => ({
@@ -267,28 +315,24 @@ async function resolveDefaultSiteNameForRequest(request: IncomingMessage): Promi
 }
 
 async function resolveSiteNameFromUrl(urlValue: string): Promise<string> {
-  const safeUrl = safeHttpUrl(urlValue);
-
-  if (!safeUrl) {
-    return 'Sitio de prueba';
-  }
-
   try {
-    const response = await fetchWithTimeout(safeUrl, 8000);
-
+    const { response, text: html } = await fetchPublicText(urlValue, {
+      timeoutMs: 8000,
+      maxRedirects: 3,
+      maximumBytes: 1_000_000,
+      headers: {
+        accept: 'text/html, application/xhtml+xml;q=0.9, text/plain;q=0.8',
+      },
+    });
     if (!response.ok) {
       return 'Sitio de prueba';
     }
-
-    const html = await response.text();
     const title = extractTitle(html);
-
     if (title) {
       return title;
     }
 
     const h1 = extractFirstH1(html);
-
     if (h1) {
       return h1;
     }
@@ -296,20 +340,6 @@ async function resolveSiteNameFromUrl(urlValue: string): Promise<string> {
     return 'Sitio de prueba';
   } catch {
     return 'Sitio de prueba';
-  }
-}
-
-function safeHttpUrl(value: string): string | null {
-  try {
-    const url = new URL(value);
-
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return null;
-    }
-
-    return url.toString();
-  } catch {
-    return null;
   }
 }
 
@@ -377,20 +407,6 @@ function decodeHtmlEntities(value: string): string {
     .replaceAll('&apos;', "'");
 }
 
-async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function readPublicHistory(): Promise<PublicHistoryEntry[]> {
   const entries = await readRunHistory(HISTORY_FILE_PATH);
   const items: PublicHistoryEntry[] = [];
@@ -427,7 +443,7 @@ async function deleteRun(pathname: string, response: ServerResponse): Promise<vo
   const runId = decodeRunIdFromApiPath(pathname);
 
   if (!runId) {
-    sendJson(response, 400, { message: 'RunId no valido.' });
+    sendJson(response, 400, { message: 'RunId no válido.' });
     return;
   }
 
@@ -435,7 +451,7 @@ async function deleteRun(pathname: string, response: ServerResponse): Promise<vo
   const relativePath = path.relative(RUNS_DIR, runDir);
 
   if (relativePath.startsWith('..') || path.isAbsolute(relativePath) || !relativePath) {
-    sendJson(response, 400, { message: 'RunId no valido.' });
+    sendJson(response, 400, { message: 'RunId no válido.' });
     return;
   }
 
@@ -457,7 +473,7 @@ async function deleteAllRuns(response: ServerResponse): Promise<void> {
   await removeRunsFromHistory(runIds);
 
   sendJson(response, 200, {
-    message: 'Se eliminaron todas las auditorias del historial.',
+    message: 'Se eliminaron todas las auditorías del historial.',
     deletedCount: runIds.length,
   });
 }
@@ -507,8 +523,8 @@ function buildConfigFromPayload(baseConfig: AuditConfig, payload: LaunchAuditPay
   const fullSite = payload.fullSite === true;
 
   if (fullSite) {
-    config.maxPages = FULL_SITE_LIMIT;
-    config.maxDepth = FULL_SITE_LIMIT;
+    config.maxPages = FULL_SITE_MAX_PAGES;
+    config.maxDepth = FULL_SITE_MAX_DEPTH;
   } else {
     const maxPages = readOptionalInteger(payload.maxPages, 'maxPages', 1);
     const maxDepth = readOptionalInteger(payload.maxDepth, 'maxDepth', 0);
@@ -548,7 +564,10 @@ function buildConfigFromPayload(baseConfig: AuditConfig, payload: LaunchAuditPay
   return config;
 }
 
-function resolveViewports(allViewports: ViewportConfig[], selectedNames: string[]): ViewportConfig[] {
+function resolveViewports(
+  allViewports: ViewportConfig[],
+  selectedNames: string[],
+): ViewportConfig[] {
   const selectedSet = new Set(selectedNames);
   return allViewports.filter((viewport) => selectedSet.has(viewport.name));
 }
@@ -670,7 +689,7 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
     const totalLength = chunks.reduce((sum, current) => sum + current.length, 0);
 
     if (totalLength > 1_000_000) {
-      throw createHttpError(413, 'El cuerpo de la peticion es demasiado grande.');
+      throw createHttpError(413, 'El cuerpo de la petición es demasiado grande.');
     }
   }
 
@@ -683,7 +702,7 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
   try {
     return JSON.parse(body) as unknown;
   } catch {
-    throw createHttpError(400, 'JSON invalido en la peticion.');
+    throw createHttpError(400, 'JSON inválido en la petición.');
   }
 }
 

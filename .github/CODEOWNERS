@@ -1,0 +1,9 @@
+* @luguru
+
+/.github/workflows/ @luguru
+/.github/CODEOWNERS @luguru
+/package.json @luguru
+/package-lock.json @luguru
+/src/web-server.ts @luguru
+/src/network-security.ts @luguru
+/src/config.ts @luguru

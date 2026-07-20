@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>IRA Agent | Lanzar auditoria</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IRA Agent | Lanzar auditoría</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
-    >
-    <link rel="stylesheet" href="/landing.css">
+    />
+    <link rel="stylesheet" href="/landing.css" />
     <script type="module" src="/landing.js"></script>
   </head>
   <body>
@@ -18,94 +18,153 @@
 
     <main class="layout">
       <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">IRA · Auditoria automatica</p>
-        <h1 id="hero-title">Lanza tu auditoria en minutos</h1>
+        <p class="eyebrow">IRA · Auditoría automática</p>
+        <h1 id="hero-title">Lanza tu auditoría en minutos</h1>
         <p class="hero-copy">
-          Define alcance, criterios y dispositivos en una sola pantalla. El motor ejecuta Playwright + axe-core
-          y genera informe HTML, JSON y Markdown.
+          Define alcance, criterios y dispositivos en una sola pantalla. El motor ejecuta Playwright
+          + axe-core y genera informe HTML, JSON y Markdown.
         </p>
         <ul class="hero-list" aria-label="Ventajas">
-          <li>Configuracion guiada sin tocar JSON manualmente.</li>
+          <li>Configuración guiada sin tocar JSON manualmente.</li>
           <li>Control total de maxPages, maxDepth, tags y viewports.</li>
-          <li>Salida lista para seguimiento tecnico y operativo.</li>
+          <li>Salida lista para seguimiento técnico y operativo.</li>
         </ul>
       </section>
 
       <section class="panel" aria-labelledby="form-title">
-        <h2 id="form-title">Nueva auditoria</h2>
-        <p class="panel-copy">Solo la URL es obligatoria. El resto usa valores por defecto si lo dejas vacio.</p>
+        <h2 id="form-title">Nueva auditoría</h2>
+        <p class="panel-copy">
+          Solo la URL es obligatoria. El resto usa valores por defecto si lo dejas vacío.
+        </p>
         <details class="field-help">
-          <summary>Que significa cada opcion</summary>
+          <summary>Qué significa cada opción</summary>
           <ul>
-            <li><strong>URL a analizar</strong>: direccion de la web que quieres revisar.</li>
-            <li><strong>Titulo de la auditoria</strong>: nombre interno para identificar esta revision.</li>
-            <li><strong>maxPages</strong>: numero maximo de paginas que se revisaran.</li>
-            <li><strong>maxDepth</strong>: cuanto puede profundizar el rastreo en enlaces internos.</li>
-            <li><strong>Analizar sitio completo</strong>: intenta recorrer todo el sitio. Puede tardar mas.</li>
-            <li><strong>axeTags</strong>: conjunto de comprobaciones automaticas de accesibilidad.</li>
-            <li><strong>viewports</strong>: tamanos de pantalla donde se ejecuta la revision (movil/escritorio).</li>
+            <li><strong>URL a analizar</strong>: dirección de la web que quieres revisar.</li>
+            <li>
+              <strong>Título de la auditoría</strong>: nombre interno para identificar esta
+              revisión.
+            </li>
+            <li><strong>maxPages</strong>: número máximo de páginas que se revisarán.</li>
+            <li>
+              <strong>maxDepth</strong>: cuánto puede profundizar el rastreo en enlaces internos.
+            </li>
+            <li>
+              <strong>Analizar sitio completo</strong>: intenta recorrer todo el sitio. Puede tardar
+              más.
+            </li>
+            <li>
+              <strong>axeTags</strong>: conjunto de comprobaciones automáticas de accesibilidad.
+            </li>
+            <li>
+              <strong>viewports</strong>: tamaños de pantalla donde se ejecuta la revisión
+              (móvil/escritorio).
+            </li>
           </ul>
         </details>
 
         <form id="audit-form" novalidate>
           <div class="field">
             <label for="url">URL a analizar *</label>
-            <input id="url" name="url" type="url" required placeholder="https://www.ejemplo.com" autocomplete="url">
+            <input
+              id="url"
+              name="url"
+              type="url"
+              required
+              placeholder="https://www.ejemplo.com"
+              autocomplete="url"
+            />
             <p class="hint">Campo obligatorio.</p>
           </div>
 
           <div class="field">
-            <label for="siteName">Titulo de la auditoria</label>
-            <input id="siteName" name="siteName" type="text" placeholder="Ej: Auditoria home + catalogo" autocomplete="off">
-            <p class="hint" id="siteName-hint">Si lo dejas vacio, se usara el valor por defecto.</p>
+            <label for="siteName">Título de la auditoría</label>
+            <input
+              id="siteName"
+              name="siteName"
+              type="text"
+              placeholder="Ej: Auditoría home + catálogo"
+              autocomplete="off"
+            />
+            <p class="hint" id="siteName-hint">Si lo dejas vacío, se usará el valor por defecto.</p>
           </div>
 
           <div class="grid-two">
             <div class="field">
               <label for="maxPages">maxPages</label>
-              <input id="maxPages" name="maxPages" type="number" min="1" step="1" inputmode="numeric" autocomplete="off">
-              <p class="hint" id="maxPages-hint">Si lo dejas vacio, se usara el valor por defecto.</p>
+              <input
+                id="maxPages"
+                name="maxPages"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                autocomplete="off"
+              />
+              <p class="hint" id="maxPages-hint">
+                Si lo dejas vacío, se usará el valor por defecto.
+              </p>
             </div>
 
             <div class="field">
               <label for="maxDepth">maxDepth</label>
-              <input id="maxDepth" name="maxDepth" type="number" min="0" step="1" inputmode="numeric" autocomplete="off">
-              <p class="hint" id="maxDepth-hint">Si lo dejas vacio, se usara el valor por defecto.</p>
+              <input
+                id="maxDepth"
+                name="maxDepth"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                autocomplete="off"
+              />
+              <p class="hint" id="maxDepth-hint">
+                Si lo dejas vacío, se usará el valor por defecto.
+              </p>
             </div>
           </div>
 
           <div class="field field-check">
             <label class="checkbox-row" for="fullSite">
-              <input id="fullSite" name="fullSite" type="checkbox">
+              <input id="fullSite" name="fullSite" type="checkbox" />
               <span>Analizar sitio completo</span>
             </label>
             <p class="hint" id="fullSite-hint">
-              Al activar este modo, maxPages y maxDepth se fijan automaticamente a 99999.
+              Al activar este modo, maxPages y maxDepth se fijan automáticamente a 99999.
             </p>
             <p class="warning" id="fullSite-warning" hidden>
-              Aviso: si el sitio es muy grande, el analisis puede durar varios minutos.
+              Aviso: si el sitio es muy grande, el análisis puede durar varios minutos.
             </p>
           </div>
 
           <fieldset class="field-group" id="axeTags-group">
             <legend>axeTags</legend>
-            <p class="hint">Selecciona los criterios que quieras evaluar. Si no marcas nada, se aplican los valores por defecto.</p>
-            <p class="hint">Cada opcion indica una familia de reglas WCAG. Debajo de cada checkbox veras su explicacion en lenguaje simple.</p>
+            <p class="hint">
+              Selecciona los criterios que quieras evaluar. Si no marcas nada, se aplican los
+              valores por defecto.
+            </p>
+            <p class="hint">
+              Cada opción indica una familia de reglas WCAG. Debajo de cada checkbox verás su
+              explicación en lenguaje simple.
+            </p>
             <div id="axeTags-options" class="check-grid"></div>
           </fieldset>
 
           <fieldset class="field-group" id="viewports-group">
             <legend>Viewports</legend>
-            <p class="hint">Selecciona los dispositivos a analizar. Si no marcas nada, se aplican los valores por defecto.</p>
+            <p class="hint">
+              Selecciona los dispositivos a analizar. Si no marcas nada, se aplican los valores por
+              defecto.
+            </p>
             <div id="viewports-options" class="check-grid"></div>
           </fieldset>
 
           <section class="effective-config" aria-labelledby="effective-config-title">
             <h3 id="effective-config-title">Opciones efectivas</h3>
-            <p class="hint">Resumen de los valores finales que se enviaran al motor de auditoria.</p>
+            <p class="hint">
+              Resumen de los valores finales que se enviarán al motor de auditoría.
+            </p>
             <dl class="effective-grid" id="effective-grid">
               <div>
-                <dt>Titulo</dt>
+                <dt>Título</dt>
                 <dd id="effective-siteName">-</dd>
               </div>
               <div>
@@ -132,7 +191,7 @@
           </section>
 
           <div class="actions">
-            <button id="submit-button" type="submit">Iniciar auditoria</button>
+            <button id="submit-button" type="submit">Iniciar auditoría</button>
             <output class="status" id="form-status" aria-live="polite"></output>
           </div>
         </form>
@@ -140,7 +199,9 @@
         <div class="result" id="run-result" hidden>
           <h3>Resultado</h3>
           <p id="run-summary"></p>
-          <a id="report-link" href="#" target="_blank" rel="noopener noreferrer">Abrir report.html</a>
+          <a id="report-link" href="#" target="_blank" rel="noopener noreferrer"
+            >Abrir report.html</a
+          >
         </div>
 
         <section class="history-panel" aria-labelledby="history-title">
@@ -148,7 +209,9 @@
             <h3 id="history-title">Historial de ejecuciones</h3>
             <div class="history-head-actions">
               <button type="button" id="history-refresh" class="history-refresh">Actualizar</button>
-              <button type="button" id="history-delete-all" class="history-delete-all">Eliminar todos</button>
+              <button type="button" id="history-delete-all" class="history-delete-all">
+                Eliminar todos
+              </button>
             </div>
           </div>
           <p class="hint">Se muestran solo runs existentes en la carpeta runs.</p>
