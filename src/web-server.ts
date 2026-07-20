@@ -180,7 +180,7 @@ async function handleAuditRequest(
 ): Promise<void> {
   if (isAuditRunning) {
     sendJson(response, 409, {
-      message: 'Ya hay una auditoria en ejecucion. Espera a que finalice para lanzar otra.',
+      message: 'Ya hay una auditoría en ejecución. Espera a que finalice para lanzar otra.',
     });
     return;
   }
@@ -214,7 +214,7 @@ async function handleAuditRequest(
     const runId = path.basename(execution.outDir);
 
     sendJson(response, 200, {
-      message: 'Auditoria finalizada correctamente.',
+      message: 'Auditoría finalizada correctamente.',
       runId,
       reportUrl: `/runs/${encodeURIComponent(runId)}/report.html`,
       resultUrl: `/runs/${encodeURIComponent(runId)}/result.json`,
@@ -259,7 +259,7 @@ async function serveRunArtifact(pathname: string, response: ServerResponse): Pro
   const targetPath = resolveRunsPath(pathname);
 
   if (!targetPath) {
-    sendJson(response, 400, { message: 'Ruta de artefacto no valida.' });
+    sendJson(response, 400, { message: 'Ruta de artefacto no válida.' });
     return;
   }
 
@@ -443,7 +443,7 @@ async function deleteRun(pathname: string, response: ServerResponse): Promise<vo
   const runId = decodeRunIdFromApiPath(pathname);
 
   if (!runId) {
-    sendJson(response, 400, { message: 'RunId no valido.' });
+    sendJson(response, 400, { message: 'RunId no válido.' });
     return;
   }
 
@@ -451,7 +451,7 @@ async function deleteRun(pathname: string, response: ServerResponse): Promise<vo
   const relativePath = path.relative(RUNS_DIR, runDir);
 
   if (relativePath.startsWith('..') || path.isAbsolute(relativePath) || !relativePath) {
-    sendJson(response, 400, { message: 'RunId no valido.' });
+    sendJson(response, 400, { message: 'RunId no válido.' });
     return;
   }
 
@@ -473,7 +473,7 @@ async function deleteAllRuns(response: ServerResponse): Promise<void> {
   await removeRunsFromHistory(runIds);
 
   sendJson(response, 200, {
-    message: 'Se eliminaron todas las auditorias del historial.',
+    message: 'Se eliminaron todas las auditorías del historial.',
     deletedCount: runIds.length,
   });
 }
@@ -689,7 +689,7 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
     const totalLength = chunks.reduce((sum, current) => sum + current.length, 0);
 
     if (totalLength > 1_000_000) {
-      throw createHttpError(413, 'El cuerpo de la peticion es demasiado grande.');
+      throw createHttpError(413, 'El cuerpo de la petición es demasiado grande.');
     }
   }
 
@@ -702,7 +702,7 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
   try {
     return JSON.parse(body) as unknown;
   } catch {
-    throw createHttpError(400, 'JSON invalido en la peticion.');
+    throw createHttpError(400, 'JSON inválido en la petición.');
   }
 }
 
