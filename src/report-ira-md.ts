@@ -3,6 +3,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
+import { localizeImpact, localizeTechnicalText } from './technical-localization.js';
 
 export async function writeIraMarkdown(
   run: AuditRun,
@@ -107,7 +108,7 @@ function renderTrend(metrics: RunMetrics, trend: RunTrend): string {
 
   return `${baseline}
 
-| Métrica | Actual | Delta |
+| Métrica | Actual | Variación |
 |---|---:|---:|
 | Incidencias automáticas | ${metrics.violations} | ${formatDelta(trend.delta.violations)} |
 | Requieren revisión | ${metrics.needsReview} | ${formatDelta(trend.delta.needsReview)} |
@@ -223,7 +224,8 @@ function renderTopRules(
 
   const rows = rules
     .map(
-      (rule) => `| ${rule.ruleId} | ${rule.total} | ${rule.impact} | ${rule.urls} | ${rule.help} |`,
+      (rule) =>
+        `| ${rule.ruleId} | ${rule.total} | ${localizeImpact(rule.impact)} | ${rule.urls} | ${localizeTechnicalText(rule.help)} |`,
     )
     .join('\n');
 

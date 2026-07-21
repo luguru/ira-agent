@@ -152,6 +152,8 @@ Comportamiento actual de la ficha IRA:
 - La fecha de detección siempre es fija.
 - La fecha de reapertura aparece automáticamente al pasar el estado a `reabierto` y queda registrada.
 - La fecha de validación aparece automáticamente al pasar el estado a `validado`.
+- Los textos técnicos procedentes de `axe-core` se localizan automáticamente al español en `report.html` e `informe-ira-automatico.md`.
+- La localización aplica una estrategia combinada (traducciones exactas + patrones + fallback genérico) para reducir textos residuales en inglés sin mantenimiento manual continuo.
 
 Campos editables en el reporte:
 

@@ -5,6 +5,7 @@ import path from 'node:path';
 import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
 import { REPORT_CSS } from './report-styles.js';
 import { REPORT_JS } from './report-scripts.js';
+import { localizeImpact, localizeTechnicalText } from './technical-localization.js';
 
 export async function writeHtmlReport(
   run: AuditRun,
@@ -599,23 +600,7 @@ function renderFindingsLegend(): string {
 }
 
 function formatImpactLabel(value: Finding['impact']): string {
-  if (value === 'critical') {
-    return 'Bloqueante';
-  }
-
-  if (value === 'serious') {
-    return 'Crítico';
-  }
-
-  if (value === 'moderate') {
-    return 'Medio';
-  }
-
-  if (value === 'minor') {
-    return 'Bajo';
-  }
-
-  return 'Sin impacto';
+  return localizeImpact(value);
 }
 
 function formatFlowLabel(value: string): string {
@@ -880,146 +865,6 @@ function formatDateEs(value: string): string {
 
   return `${day}/${month}/${year}`;
 }
-
-function localizeTechnicalText(value: string): string {
-  const raw = value.trim();
-
-  if (!raw) {
-    return 'Sin detalle técnico';
-  }
-
-  const exact = EXACT_TECHNICAL_TRANSLATIONS.get(raw);
-
-  if (exact) {
-    return exact;
-  }
-
-  let localized = raw;
-
-  for (const [pattern, replacement] of TECHNICAL_PHRASE_REPLACEMENTS) {
-    localized = localized.replace(pattern, replacement);
-  }
-
-  for (const [pattern, replacement] of TECHNICAL_REPLACEMENTS) {
-    localized = localized.replace(pattern, replacement);
-  }
-
-  return dedupeRepeatedTechnicalLines(localized);
-}
-
-function dedupeRepeatedTechnicalLines(value: string): string {
-  const lines = value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  const uniqueLines: string[] = [];
-  const seen = new Set<string>();
-
-  for (const line of lines) {
-    const key = trimTrailingSentencePunctuation(line.toLowerCase()).trim();
-
-    if (seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    uniqueLines.push(line);
-  }
-
-  return uniqueLines.join('\n');
-}
-
-function trimTrailingSentencePunctuation(value: string): string {
-  let end = value.length;
-
-  while (end > 0) {
-    const current = value[end - 1];
-
-    if (current !== '.' && current !== '。') {
-      break;
-    }
-
-    end -= 1;
-  }
-
-  return value.slice(0, end);
-}
-
-const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
-  [
-    'Elements must meet minimum color contrast ratio thresholds',
-    'Los elementos deben cumplir los umbrales mínimos de relación de contraste de color.',
-  ],
-  ['Form elements must have labels', 'Los elementos de formulario deben tener etiquetas.'],
-  ['Links must have discernible text', 'Los enlaces deben tener un texto identificable.'],
-  ['Focus indicator should be visible', 'El indicador de foco debería ser visible.'],
-  [
-    'All page content should be contained by landmarks',
-    'Todo el contenido de la página debería estar contenido por regiones landmark.',
-  ],
-  ['Fix contrast ratio', 'Corrige la relación de contraste.'],
-  ['Manual verification required', 'Se requiere verificación manual.'],
-  ['Provide accessible name', 'Proporciona un nombre accesible.'],
-  ['Increase focus contrast', 'Aumenta el contraste del foco.'],
-  ['Review page landmarks manually', 'Revisa manualmente las regiones landmark de la página.'],
-  [
-    'Elements must only use permitted ARIA attributes',
-    'Los elementos solo deben usar atributos ARIA permitidos.',
-  ],
-]);
-
-const TECHNICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
-  [/Fix any of the following:\s*/gi, 'Corrige cualquiera de los siguientes puntos:\n'],
-  [/Fix all of the following:\s*/gi, 'Corrige todos los siguientes puntos:\n'],
-  [
-    /Element has insufficient color contrast of\s*(\d+(?:\.\d+)?)/gi,
-    'El elemento tiene una relación de contraste insuficiente de $1',
-  ],
-  [
-    /Expected contrast ratio of\s*(\d+(?:\.\d+)?\s*:\s*\d+)/gi,
-    'Se espera una relación de contraste de $1',
-  ],
-  [
-    /Form element does not have an associated label/gi,
-    'El elemento de formulario no tiene una etiqueta asociada',
-  ],
-  [/Form elements must have labels/gi, 'Los elementos de formulario deben tener etiquetas'],
-  [/Links must have discernible text/gi, 'Los enlaces deben tener un texto identificable'],
-  [/Link has no text/gi, 'El enlace no tiene texto'],
-  [
-    /Element does not have inner text that is visible to screen readers/gi,
-    'El elemento no tiene texto interno visible para lectores de pantalla',
-  ],
-  [
-    /Elements must only use permitted ARIA attributes/gi,
-    'Los elementos solo deben usar atributos ARIA permitidos',
-  ],
-  [
-    /aria-label attribute is not well supported on a div with no valid role attribute\.?/gi,
-    'El atributo aria-label no está bien soportado en un div sin un rol válido.',
-  ],
-  [
-    /Element'?s background color could not be determined due to a background gradient\.?/gi,
-    'No se pudo determinar el color de fondo del elemento debido a un degradado de fondo.',
-  ],
-  [
-    /Element'?s foreground color could not be determined due to a background gradient\.?/gi,
-    'No se pudo determinar el color de primer plano del elemento debido a un degradado de fondo.',
-  ],
-  [/Text is not within a landmark element/gi, 'El texto no está dentro de un elemento landmark'],
-  [
-    /All page content should be contained by landmarks/gi,
-    'Todo el contenido de la página debería estar contenido por regiones landmark',
-  ],
-  [/Focus indicator should be visible/gi, 'El indicador de foco debería ser visible'],
-  [/Manual verification required/gi, 'Se requiere verificación manual'],
-  [/Provide accessible name/gi, 'Proporciona un nombre accesible'],
-  [/Increase focus contrast/gi, 'Aumenta el contraste del foco'],
-  [/Review page landmarks manually/gi, 'Revisa manualmente las regiones landmark de la página'],
-];
-
-const TECHNICAL_REPLACEMENTS: Array<[RegExp, string]> = [[/[ \t]{2,}/g, ' ']];
 
 const INCIDENT_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'nuevo', label: 'Nuevo' },

@@ -6,7 +6,23 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
-- Sin cambios por ahora.
+### Changed
+
+- Localización y reportes:
+  - Se centraliza la localización técnica en un módulo compartido para traducir automáticamente al español textos procedentes de `axe-core`.
+  - `report.html` e `informe-ira-automatico.md` reutilizan la misma capa de localización para mantener consistencia entre salidas.
+  - El reporte Markdown normaliza la cabecera de tendencia de `Delta` a `Variación` y localiza el impacto (`critical`, `serious`, etc.) en etiquetas en español.
+
+### Added
+
+- Tests y calidad:
+  - Nuevas pruebas para validar localización técnica automática, fallback genérico para frases nuevas en inglés y localización de impacto.
+  - Nueva prueba de `report-ira-md` para comprobar traducciones y ausencia de severidades en inglés en el informe Markdown.
+
+### Removed
+
+- Localización y mantenibilidad:
+  - Se eliminan traducciones literales redundantes cubiertas por la nueva estrategia automática, reduciendo mantenimiento manual.
 
 ## [0.5.0] - 2026-07-20
 
