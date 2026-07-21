@@ -22,7 +22,10 @@ test('writeIraMarkdown traduce descripciones e impacto técnico al español', as
     const markdown = await readFile(path.join(outDir, 'informe-ira-automatico.md'), 'utf8');
 
     assert.match(markdown, /\| Métrica \| Actual \| Variación \|/);
-    assert.match(markdown, /Los elementos deben cumplir los umbrales mínimos de relación de contraste de color\./);
+    assert.match(
+      markdown,
+      /Los elementos deben cumplir los umbrales mínimos de relación de contraste de color\./,
+    );
     assert.match(markdown, /Los elementos solo deben usar atributos ARIA permitidos\./);
     assert.match(markdown, /Bloqueante/);
     assert.match(markdown, /Crítico/);

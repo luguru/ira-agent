@@ -5,11 +5,23 @@ const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
     'Elements must meet minimum color contrast ratio thresholds',
     'Los elementos deben cumplir los umbrales mínimos de relación de contraste de color.',
   ],
-  ['All touch targets must be 24px large, or leave sufficient space', 'Todos los objetivos táctiles deben medir al menos 24 px o dejar espacio suficiente.'],
-  ['Interactive controls must not be nested', 'Los controles interactivos no deben estar anidados.'],
+  [
+    'All touch targets must be 24px large, or leave sufficient space',
+    'Todos los objetivos táctiles deben medir al menos 24 px o dejar espacio suficiente.',
+  ],
+  [
+    'Interactive controls must not be nested',
+    'Los controles interactivos no deben estar anidados.',
+  ],
   ['lang attribute must have a valid value', 'El atributo lang debe tener un valor válido.'],
-  ['Links must be distinguishable without relying on color', 'Los enlaces deben distinguirse sin depender solo del color.'],
-  ['ARIA attributes must conform to valid values', 'Los atributos ARIA deben ajustarse a valores válidos.'],
+  [
+    'Links must be distinguishable without relying on color',
+    'Los enlaces deben distinguirse sin depender solo del color.',
+  ],
+  [
+    'ARIA attributes must conform to valid values',
+    'Los atributos ARIA deben ajustarse a valores válidos.',
+  ],
   [
     '<ul> and <ol> must only directly contain <li>, <script> or <template> elements',
     '<ul> y <ol> solo deben contener directamente elementos <li>, <script> o <template>.',
@@ -18,7 +30,10 @@ const EXACT_TECHNICAL_TRANSLATIONS = new Map<string, string>([
     '&lt;ul&gt; and &lt;ol&gt; must only directly contain &lt;li&gt;, &lt;script&gt; or &lt;template&gt; elements',
     '&lt;ul&gt; y &lt;ol&gt; solo deben contener directamente elementos &lt;li&gt;, &lt;script&gt; o &lt;template&gt;.',
   ],
-  ['Scrollable region must have keyboard access', 'La región desplazable debe tener acceso mediante teclado.'],
+  [
+    'Scrollable region must have keyboard access',
+    'La región desplazable debe tener acceso mediante teclado.',
+  ],
 ]);
 
 const TECHNICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
@@ -83,10 +98,7 @@ const TECHNICAL_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
     /Element size could not be accurately determined due to overflow content\.?/gi,
     'No se pudo determinar con precisión el tamaño del elemento debido al contenido desbordado.',
   ],
-  [
-    /Target has insufficient size\s*\(([^)]*)\)/gi,
-    'El objetivo tiene un tamaño insuficiente ($1)',
-  ],
+  [/Target has insufficient size\s*\(([^)]*)\)/gi, 'El objetivo tiene un tamaño insuficiente ($1)'],
   [/should be at least/gi, 'debería ser al menos'],
   [/px by /gi, 'px por '],
   [

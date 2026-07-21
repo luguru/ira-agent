@@ -14,10 +14,7 @@ const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url || '/', `http://${HOST}:${PORT}`);
 
   if (method === 'GET' && requestUrl.pathname === '/') {
-    return sendHtml(
-      response,
-      homePage(),
-    );
+    return sendHtml(response, homePage());
   }
 
   if (method === 'GET' && requestUrl.pathname === '/about') {
