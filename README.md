@@ -137,8 +137,8 @@ Mock local de apoyo para pruebas E2E:
 - Script: `npm run mock:site`
 - URL: `http://127.0.0.1:4410`
 - Credenciales QA mock:
-	- `editor_qa` / `password_editor`
-	- `admin_qa` / `password_admin`
+  - `editor_qa` / `password_editor`
+  - `admin_qa` / `password_admin`
 
 Comandos directos por escenario:
 
@@ -234,9 +234,9 @@ Ejemplo:
 
 ```json
 {
-	"action": "type",
-	"selector": "input[type='password']",
-	"value": "{{env:IRA_AUDIT_PASSWORD}}"
+  "action": "type",
+  "selector": "input[type='password']",
+  "value": "{{env:IRA_AUDIT_PASSWORD}}"
 }
 ```
 
@@ -246,8 +246,8 @@ Para flujos de login se recomienda incluir un paso explícito de verificación:
 
 ```json
 {
-	"action": "assert-url-includes",
-	"value": "/app/"
+  "action": "assert-url-includes",
+  "value": "/app/"
 }
 ```
 
