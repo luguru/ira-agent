@@ -141,6 +141,9 @@ En `report.html`, cada incidencia se presenta como ficha IRA con campos de gesti
 Comportamiento actual de la ficha IRA:
 
 - Cada incidencia funciona como acordeón (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
+- Las incidencias se muestran agrupadas por regla para navegar y priorizar patrones sin recorrer una lista plana interminable.
+- Cada grupo de regla inicia cerrado por defecto para que el informe no se alargue cuando hay muchas incidencias repetidas.
+- Al abrir un grupo de regla, su cabecera queda fija durante el scroll para mantener visible el contexto y poder colapsarlo en cualquier momento.
 - El estado seleccionado se muestra en cabecera como chip y se edita dentro del bloque de metadatos.
 - La cuadrícula interna se organiza en filas para facilitar lectura de análisis y seguimiento.
 - El nombre del sitio mostrado en el encabezado y en Alcance prioriza el título real detectado (`<title>`), con fallback a `h1` y finalmente a `siteName`.

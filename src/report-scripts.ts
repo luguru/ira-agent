@@ -6,6 +6,7 @@ export const REPORT_JS = `(() => {
   const resetButton = document.getElementById('finding-filter-reset');
   const countNode = document.getElementById('finding-count');
   const cards = Array.from(document.querySelectorAll('.finding-card'));
+  const ruleGroups = Array.from(document.querySelectorAll('.finding-rule-group'));
 
   if (!viewportSelect || !statusSelect || !impactSelect || !countNode || cards.length === 0) {
     return;
@@ -100,7 +101,23 @@ export const REPORT_JS = `(() => {
       }
     }
 
+    syncRuleGroupVisibility();
+
     countNode.textContent = formatCount(visibleCount, cards.length);
+  };
+
+  const syncRuleGroupVisibility = () => {
+    for (const group of ruleGroups) {
+      const visibleCards = group.querySelectorAll('.finding-card:not(.is-hidden)').length;
+      const isHidden = visibleCards === 0;
+
+      group.classList.toggle('is-hidden', isHidden);
+      group.setAttribute('aria-hidden', isHidden ? 'true' : 'false');
+
+      if (isHidden && group.tagName === 'DETAILS') {
+        group.removeAttribute('open');
+      }
+    }
   };
 
   const resetFilters = () => {

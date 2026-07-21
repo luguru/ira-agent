@@ -6,6 +6,10 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+- Sin cambios por ahora.
+
+## [0.5.0] - 2026-07-20
+
 ### Added
 
 - Protección inicial frente a destinos de red locales, privados y reservados.
@@ -18,6 +22,10 @@ Formato basado en Keep a Changelog y versionado SemVer.
 - El modo de sitio completo queda limitado a 1000 páginas y profundidad 10.
 - CI ejecuta tests, build y validación de formato.
 - Motor de flows: las acciones con selector ahora usan el primer elemento visible y habilitado, evitando falsos fallos por coincidencias ocultas.
+- Reporte HTML:
+  - El detalle de incidencias se agrupa por regla detectada para reducir scroll continuo y facilitar la priorización por patrón.
+  - Los grupos por regla se muestran cerrados por defecto para evitar listados largos cuando una sola regla concentra muchas incidencias.
+  - Al desplegar un grupo, su cabecera queda fija durante el scroll para mantener contexto y permitir colapsar el bloque en cualquier momento.
 - Landing web:
   - La ejecución de auditoría pasa a modo asíncrono con seguimiento de estado en tiempo real.
   - Se añade barra de progreso con porcentaje y lista de tareas activas/completadas.
