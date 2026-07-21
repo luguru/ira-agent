@@ -11,7 +11,7 @@ export type ViewportConfig = {
   isMobile?: boolean;
 };
 
-export type FlowStepAction = 'click' | 'type' | 'press' | 'wait';
+export type FlowStepAction = 'click' | 'type' | 'press' | 'wait' | 'assert-url-includes';
 
 export type FlowStep = {
   action: FlowStepAction;
@@ -40,6 +40,7 @@ export type AuditConfig = {
   keepQueryParams: boolean;
   waitUntil: WaitUntil;
   timeoutMs: number;
+  failOnFlowError?: boolean;
   axeTags: string[];
   viewports: ViewportConfig[];
   flows?: FlowConfig[];

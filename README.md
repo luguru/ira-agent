@@ -44,13 +44,31 @@ Auditoría completa usando la configuración del proyecto:
 npm run audit
 ```
 
+Auditoría sobre entorno local o de desarrollo (localhost/red privada):
+
+```bash
+npm run audit:local -- --url http://localhost:3000 --maxPages 3 --maxDepth 1
+```
+
 Lanzar landing local para ejecutar auditorías desde navegador:
 
 ```bash
 npm run web
 ```
 
+Lanzar landing con soporte para auditar localhost/red privada:
+
+```bash
+npm run web:local
+```
+
 Después abre `http://localhost:4173`.
+
+Nota de seguridad para local/dev:
+
+- Por defecto, IRA Agent bloquea destinos locales/privados para reducir riesgo SSRF.
+- Los scripts `audit:local` y `web:local` activan `IRA_ALLOW_PRIVATE_NETWORKS=true`.
+- Úsalo solo en entornos controlados y de confianza.
 
 Desde la landing puedes indicar:
 
@@ -98,6 +116,142 @@ Nota de TypeScript:
 
 - `tsconfig.json` se usa para tipado en editor (incluye `src` y `tests`, sin emisión).
 - `tsconfig.build.json` se usa para compilación (`npm run build`) y genera `dist` solo desde `src`.
+
+## Escenarios de auditoría
+
+Se incluye una checklist operativa y plantillas de config para tres escenarios:
+
+- Checklist: `scenarios/CHECKLIST.md`
+- Sitio público: `scenarios/public.example.json`
+- Intranet/VPN: `scenarios/private-network.example.json`
+- Sitio autenticado: `scenarios/authenticated.example.json`
+- Intranet localhost (validacion tecnica): `scenarios/private-network.localhost.example.json`
+- Autenticado localhost (validacion tecnica): `scenarios/authenticated.localhost.example.json`
+- Runbook público: `scenarios/public.md`
+- Runbook intranet/VPN: `scenarios/private-network.md`
+- Runbook autenticado: `scenarios/authenticated.md`
+- Runbook de reunión (1 página): `scenarios/TEAM_RUNBOOK.md`
+
+Mock local de apoyo para pruebas E2E:
+
+- Script: `npm run mock:site`
+- URL: `http://127.0.0.1:4410`
+- Credenciales QA mock:
+  - `editor_qa` / `password_editor`
+  - `admin_qa` / `password_admin`
+
+Comandos directos por escenario:
+
+```bash
+npm run audit:scenario:public
+npm run audit:scenario:private
+npm run audit:scenario:auth
+npm run audit:scenario:auth:private
+npm run audit:scenario:private:mock
+npm run audit:scenario:auth:mock
+npm run test:scenarios:mock
+```
+
+Scripts operativos para entorno real:
+
+```bash
+./scenarios/run-private-real.sh
+./scenarios/run-auth-real.sh
+```
+
+Variables esperadas:
+
+- `run-private-real.sh`: `IRA_PRIVATE_URL` (obligatoria), `IRA_SITE_NAME`, `IRA_MAX_PAGES`, `IRA_MAX_DEPTH`.
+- `run-auth-real.sh`: `IRA_AUTH_URL`, `IRA_AUDIT_USER`, `IRA_AUDIT_PASSWORD` (obligatorias), `IRA_AUTH_ROLE`, `IRA_AUTH_PRIVATE`, `IRA_SITE_NAME`, `IRA_MAX_PAGES`, `IRA_MAX_DEPTH`.
+
+Plantilla de evidencia para PR:
+
+- `scenarios/EVIDENCE_TEMPLATE.md`
+
+Validación automática de escenarios mock:
+
+- Script reutilizable: `scenarios/ci-validate-mock.sh`
+- Se ejecuta en CI dentro de `.github/workflows/ci.yml`.
+
+Flujo sugerido por escenario:
+
+1. Copiar la plantilla al config activo.
+2. Ajustar `baseUrl`, `include`, `exclude` y selectores de `flows`.
+3. Ejecutar la auditoría con el comando adecuado.
+
+Ejemplos:
+
+```bash
+cp scenarios/public.example.json audit.config.json
+npm run audit
+```
+
+```bash
+cp scenarios/private-network.example.json audit.config.json
+npm run audit:local
+```
+
+Validacion tecnica local del escenario intranet:
+
+```bash
+npm run mock:site
+npm run audit:scenario:private:mock
+```
+
+```bash
+cp scenarios/authenticated.example.json audit.config.json
+export IRA_AUDIT_USER="usuario_qa"
+export IRA_AUDIT_PASSWORD="password_qa"
+npm run audit:scenario:auth
+```
+
+Validacion tecnica local del escenario autenticado:
+
+```bash
+npm run mock:site
+export IRA_AUDIT_USER="editor_qa"
+export IRA_AUDIT_PASSWORD="password_editor"
+npm run audit:scenario:auth:mock
+```
+
+Para red privada con login real:
+
+```bash
+export IRA_AUTH_URL="http://intranet.miempresa.local/login"
+export IRA_AUDIT_USER="usuario_qa"
+export IRA_AUDIT_PASSWORD="password_qa"
+export IRA_AUTH_PRIVATE=true
+./scenarios/run-auth-real.sh
+```
+
+### Variables de entorno en flows (escenario autenticado)
+
+En los `steps` de tipo `type`, `press`, `wait` y `assert-url-includes` puedes usar placeholders con formato:
+
+- `{{env:NOMBRE_VARIABLE}}`
+
+Ejemplo:
+
+```json
+{
+  "action": "type",
+  "selector": "input[type='password']",
+  "value": "{{env:IRA_AUDIT_PASSWORD}}"
+}
+```
+
+Si la variable no existe o está vacía, la ejecución falla con un mensaje explícito.
+
+Para flujos de login se recomienda incluir un paso explícito de verificación:
+
+```json
+{
+  "action": "assert-url-includes",
+  "value": "/app/"
+}
+```
+
+Además, puedes activar `"failOnFlowError": true` en la configuración para que un fallo del flow se registre como error técnico de auditoría.
 
 ## Configuración
 

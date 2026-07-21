@@ -56,6 +56,10 @@ export async function auditPage(
         );
       } catch (error) {
         console.warn(`[flow] ${flow.name} en ${url}: ${formatError(error)}`);
+
+        if (config.failOnFlowError) {
+          throw new Error(`flow ${flow.name} fallo: ${formatError(error)}`);
+        }
       }
     }
 

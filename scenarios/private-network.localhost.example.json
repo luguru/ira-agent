@@ -1,0 +1,29 @@
+{
+  "siteName": "Intranet QA localhost",
+  "baseUrl": "http://127.0.0.1:4410",
+  "maxPages": 5,
+  "maxDepth": 1,
+  "concurrency": 2,
+  "include": ["/"],
+  "exclude": ["/logout"],
+  "crawlSitemap": false,
+  "sameOriginOnly": true,
+  "keepQueryParams": false,
+  "waitUntil": "domcontentloaded",
+  "timeoutMs": 30000,
+  "axeTags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa", "EN-301-549"],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "isMobile": true
+    }
+  ],
+  "flows": []
+}

@@ -1,6 +1,8 @@
 import type { FlowConfig, FlowStep } from './types.js';
+import process from 'node:process';
 
 const DEFAULT_STEP_TIMEOUT_MS = 5000;
+const FLOW_ENV_PLACEHOLDER = /^\{\{\s*env:([A-Z0-9_]+)\s*\}\}$/i;
 
 export function getMatchingFlows(
   flows: FlowConfig[],
@@ -75,6 +77,9 @@ async function executeStep(
     case 'wait':
       await executeWaitStep(page, step, timeout);
       return;
+    case 'assert-url-includes':
+      await executeAssertUrlIncludesStep(page, step, timeout);
+      return;
     default:
       throw new Error(`acción no soportada: ${(step as { action: string }).action}`);
   }
@@ -108,8 +113,9 @@ async function executeTypeStep(
   }
 
   const target = await getFirstActionableLocator(page, step.selector, timeout);
+  const value = resolveFlowStepValue(step.value);
 
-  await target.fill(step.value, { timeout });
+  await target.fill(value, { timeout });
 }
 
 async function executePressStep(
@@ -121,14 +127,16 @@ async function executePressStep(
     throw new Error('value no definido para press');
   }
 
+  const keyOrText = resolveFlowStepValue(step.value);
+
   if (step.selector) {
     const target = await getFirstActionableLocator(page, step.selector, timeout);
 
-    await target.press(step.value, { timeout });
+    await target.press(keyOrText, { timeout });
     return;
   }
 
-  await page.keyboard.press(step.value);
+  await page.keyboard.press(keyOrText);
 }
 
 async function executeWaitStep(
@@ -141,13 +149,66 @@ async function executeWaitStep(
     return;
   }
 
-  const duration = Number(step.value);
+  if (step.value === undefined) {
+    throw new Error('value no definido para wait sin selector');
+  }
+
+  const duration = Number(resolveFlowStepValue(step.value));
 
   if (!Number.isFinite(duration) || duration < 0) {
     throw new Error('value debe ser milisegundos para wait sin selector');
   }
 
   await page.waitForTimeout(duration);
+}
+
+async function executeAssertUrlIncludesStep(
+  page: import('playwright').Page,
+  step: FlowStep,
+  timeout: number,
+): Promise<void> {
+  if (step.value === undefined) {
+    throw new Error('value no definido para assert-url-includes');
+  }
+
+  const expectedFragment = resolveFlowStepValue(step.value);
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    const currentUrl = page.url();
+
+    if (currentUrl.includes(expectedFragment)) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(
+    `la URL final no contiene el fragmento esperado: ${expectedFragment}. URL actual: ${page.url()}`,
+  );
+}
+
+export function resolveFlowStepValue(value: string): string {
+  const match = FLOW_ENV_PLACEHOLDER.exec(value);
+
+  if (!match) {
+    return value;
+  }
+
+  const envKey = match[1];
+
+  if (!envKey) {
+    throw new Error('placeholder de entorno invalido');
+  }
+
+  const envValue = process.env[envKey];
+
+  if (!envValue) {
+    throw new Error(`variable de entorno no definida o vacia: ${envKey}`);
+  }
+
+  return envValue;
 }
 
 function formatError(error: unknown): string {

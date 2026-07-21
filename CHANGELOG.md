@@ -6,6 +6,8 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-21
+
 ### Changed
 
 - Localización y reportes:
@@ -13,11 +15,45 @@ Formato basado en Keep a Changelog y versionado SemVer.
   - `report.html` e `informe-ira-automatico.md` reutilizan la misma capa de localización para mantener consistencia entre salidas.
   - El reporte Markdown normaliza la cabecera de tendencia de `Delta` a `Variación` y localiza el impacto (`critical`, `serious`, etc.) en etiquetas en español.
 
+- Flujos autenticados:
+  - Los valores de `steps` en `flows` ahora aceptan placeholders de entorno con formato `{{env:NOMBRE_VARIABLE}}` para `type`, `press`, `wait` y `assert-url-includes`.
+  - Si una variable referenciada no existe o está vacía, la ejecución falla con mensaje explícito.
+  - Nuevo paso `assert-url-includes` para verificar navegación esperada (por ejemplo, confirmar que login termina en `/app/`).
+  - Nueva opción de configuración `failOnFlowError` para registrar errores técnicos cuando un flow falla.
+
 ### Added
 
 - Tests y calidad:
   - Nuevas pruebas para validar localización técnica automática, fallback genérico para frases nuevas en inglés y localización de impacto.
   - Nueva prueba de `report-ira-md` para comprobar traducciones y ausencia de severidades en inglés en el informe Markdown.
+  - Nuevas pruebas de validación de configuración para `assert-url-includes` y `failOnFlowError`.
+
+- Flujo local/dev:
+  - Nuevos scripts `npm run audit:local` y `npm run web:local` para auditar `localhost` y redes privadas en entornos controlados.
+  - Ambos scripts activan `IRA_ALLOW_PRIVATE_NETWORKS=true` para habilitar pruebas en desarrollo.
+
+- Escenarios de auditoría:
+  - Nueva checklist de trabajo en `scenarios/CHECKLIST.md` para separar ejecución en público, intranet/VPN y autenticado.
+  - Nuevas plantillas de configuración: `scenarios/public.example.json`, `scenarios/private-network.example.json` y `scenarios/authenticated.example.json`.
+  - Nuevas plantillas localhost para validación técnica: `scenarios/private-network.localhost.example.json` y `scenarios/authenticated.localhost.example.json`.
+  - Nuevos runbooks operativos: `scenarios/public.md`, `scenarios/private-network.md` y `scenarios/authenticated.md`.
+  - Nuevo runbook unificado para reunión en `scenarios/TEAM_RUNBOOK.md`.
+  - Nuevo mock local de apoyo para validación E2E en `scenarios/mock-site.mjs`.
+
+- Scripts de ejecución:
+  - Nuevos comandos `npm run audit:scenario:public`, `npm run audit:scenario:private` y `npm run audit:scenario:auth`.
+  - El script de escenario autenticado valida previamente que existan `IRA_AUDIT_USER` e `IRA_AUDIT_PASSWORD`.
+  - Nuevos comandos `npm run mock:site`, `npm run audit:scenario:private:mock` y `npm run audit:scenario:auth:mock` para validación técnica local.
+  - Nuevo comando `npm run audit:scenario:auth:private` para login en redes privadas/intranet.
+  - Nuevos scripts ejecutables `scenarios/run-private-real.sh` y `scenarios/run-auth-real.sh` para ejecución real parametrizable.
+  - Nuevo script `npm run test:scenarios:mock` para validar private/auth mock de punta a punta.
+
+- CI:
+  - El workflow `.github/workflows/ci.yml` ahora ejecuta validación de escenarios mock tras test/build/format.
+
+- CLI y trazabilidad:
+  - Nuevo argumento `--siteName` para personalizar el nombre de auditoría sin editar el JSON de configuración.
+  - Nueva plantilla `scenarios/EVIDENCE_TEMPLATE.md` para estandarizar evidencias de PR.
 
 ### Removed
 
