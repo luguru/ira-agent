@@ -20,7 +20,8 @@ test('localizeTechnicalText traduce frases nuevas de forma genérica', () => {
 });
 
 test('localizeTechnicalText no altera texto ya en español', () => {
-  const input = 'Corrige cualquiera de los siguientes puntos:\nEl elemento debería tener contenido enfocable';
+  const input =
+    'Corrige cualquiera de los siguientes puntos:\nEl elemento debería tener contenido enfocable';
 
   assert.equal(localizeTechnicalText(input), input);
 });
