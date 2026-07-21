@@ -44,10 +44,7 @@ test('validateConfig acepta assert-url-includes cuando tiene value', () => {
 test('validateConfig rechaza assert-url-includes sin value', () => {
   const config = createBaseConfig({ action: 'assert-url-includes' });
 
-  assert.throws(
-    () => validateConfig(config),
-    /value es obligatorio para assert-url-includes/i,
-  );
+  assert.throws(() => validateConfig(config), /value es obligatorio para assert-url-includes/i);
 });
 
 test('validateConfig mantiene failOnFlowError=true cuando esta activado', () => {
