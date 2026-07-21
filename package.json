@@ -1,6 +1,6 @@
 {
   "name": "ira-agent",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Agente local para análisis automático de accesibilidad y generación de informe IRA automático.",
   "type": "module",
   "scripts": {

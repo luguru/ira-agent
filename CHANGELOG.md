@@ -6,6 +6,8 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-21
+
 ### Changed
 
 - Localización y reportes:
