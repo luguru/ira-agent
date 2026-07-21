@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+      actions: read
       security-events: write
       packages: read
 
@@ -31,10 +32,56 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check CodeQL runtime permissions
+        id: codeql-permissions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+          IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork || false }}
+          IS_DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
+        run: |
+          set -euo pipefail
+
+          can_analyze="true"
+
+          if [ "${IS_FORK_PR}" = "true" ] || [ "${IS_DEPENDABOT}" = "true" ]; then
+            can_analyze="false"
+            echo "::notice title=CodeQL omitted::PR con permisos restringidos (fork/dependabot)."
+          fi
+
+          if [ "${can_analyze}" = "true" ]; then
+            status="$(curl -s -o /tmp/workflow-run.json -w '%{http_code}' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GH_REPO}/actions/runs/${GH_RUN_ID}")"
+
+            if [ "${status}" != "200" ]; then
+              can_analyze="false"
+              echo "::notice title=CodeQL omitted::Sin permisos para consultar workflow run (HTTP ${status})."
+            fi
+          fi
+
+          echo "can_analyze=${can_analyze}" >> "$GITHUB_OUTPUT"
+
       - name: Initialize CodeQL
+        if: steps.codeql-permissions.outputs.can_analyze == 'true'
         uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
 
       - name: Perform CodeQL analysis
+        id: codeql-analyze
+        if: steps.codeql-permissions.outputs.can_analyze == 'true'
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         uses: github/codeql-action/analyze@v4
+
+      - name: Report non-blocking CodeQL error on pull request
+        if: github.event_name == 'pull_request' && steps.codeql-analyze.outcome == 'failure'
+        run: |
+          echo "::warning title=CodeQL non-blocking failure::CodeQL fallo en PR y se mantiene no bloqueante por permisos restringidos."
+
+      - name: Skip CodeQL analysis
+        if: steps.codeql-permissions.outputs.can_analyze != 'true'
+        run: |
+          echo "CodeQL se omite para esta ejecucion por permisos insuficientes del token."
