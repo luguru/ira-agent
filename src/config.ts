@@ -5,6 +5,7 @@ import type { AuditConfig, FlowConfig, FlowStep, WaitUntil } from './types.js';
 export type CliArgs = {
   config?: string;
   url?: string;
+  siteName?: string;
   maxPages?: string;
   maxDepth?: string;
 };
@@ -52,6 +53,7 @@ export function validateConfig(config: AuditConfig): void {
   config.maxDepth = ensureInteger(config.maxDepth, 'config.maxDepth', 0);
   config.concurrency = ensureInteger(config.concurrency, 'config.concurrency', 1);
   config.timeoutMs = ensureInteger(config.timeoutMs, 'config.timeoutMs', 1000);
+  config.failOnFlowError = config.failOnFlowError === true;
 
   if (!isWaitUntil(config.waitUntil)) {
     throw new Error('config.waitUntil debe ser load, domcontentloaded o networkidle');
@@ -166,5 +168,5 @@ function requiresSelector(action: FlowStep['action']): boolean {
 }
 
 function requiresValue(action: FlowStep['action']): boolean {
-  return action === 'type' || action === 'press';
+  return action === 'type' || action === 'press' || action === 'assert-url-includes';
 }

@@ -1,0 +1,59 @@
+{
+  "siteName": "Portal autenticado QA",
+  "baseUrl": "https://staging.miempresa.com/login",
+  "maxPages": 10,
+  "maxDepth": 1,
+  "concurrency": 1,
+  "include": ["/login", "/app"],
+  "exclude": ["/logout"],
+  "crawlSitemap": false,
+  "sameOriginOnly": true,
+  "keepQueryParams": false,
+  "waitUntil": "domcontentloaded",
+  "timeoutMs": 30000,
+  "failOnFlowError": true,
+  "axeTags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa", "EN-301-549"],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "isMobile": true
+    }
+  ],
+  "flows": [
+    {
+      "name": "login",
+      "urlIncludes": ["/login"],
+      "steps": [
+        {
+          "action": "type",
+          "selector": "input[name='email'], input[type='email']",
+          "value": "{{env:IRA_AUDIT_USER}}"
+        },
+        {
+          "action": "type",
+          "selector": "input[name='password'], input[type='password']",
+          "value": "{{env:IRA_AUDIT_PASSWORD}}"
+        },
+        {
+          "action": "click",
+          "selector": "button[type='submit'], [data-testid='login-submit']"
+        },
+        {
+          "action": "wait",
+          "value": "1200"
+        },
+        {
+          "action": "assert-url-includes",
+          "value": "/app/"
+        }
+      ]
+    }
+  ]
+}
