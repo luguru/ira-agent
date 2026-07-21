@@ -268,6 +268,13 @@ form {
   margin-top: 0.4rem;
 }
 
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
 .effective-config {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
@@ -326,10 +333,145 @@ button[type='submit']:disabled {
   cursor: wait;
 }
 
+.cancel-button {
+  border: 1px solid #b91c1c;
+  border-radius: var(--radius-pill);
+  padding: 0.72rem 1.05rem;
+  font: inherit;
+  font-weight: 700;
+  color: #991b1b;
+  background: #fee2e2;
+  cursor: pointer;
+}
+
+.cancel-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .status {
   margin: 0;
   min-height: 1.2rem;
   color: var(--text-muted);
+}
+
+.progress-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-soft);
+  padding: var(--space-sm);
+}
+
+.progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.progress-head h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1rem;
+}
+
+.progress-percent {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+.progress-message {
+  margin: 0.5rem 0 0;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.progress-eta {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.progress-track {
+  margin-top: 0.6rem;
+  inline-size: 100%;
+  block-size: 0.72rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: #dbe6e4;
+  overflow: hidden;
+  appearance: none;
+}
+
+.progress-track::-webkit-progress-bar {
+  background: #dbe6e4;
+  border-radius: var(--radius-pill);
+}
+
+.progress-track::-webkit-progress-value {
+  background: linear-gradient(90deg, #0f766e 0%, #0d9488 100%);
+  border-radius: var(--radius-pill);
+}
+
+.progress-track::-moz-progress-bar {
+  background: linear-gradient(90deg, #0f766e 0%, #0d9488 100%);
+  border-radius: var(--radius-pill);
+}
+
+.progress-tasks {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.progress-task {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem 0.6rem;
+  align-items: start;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  padding: 0.5rem 0.6rem;
+}
+
+.progress-task-status {
+  inline-size: 0.68rem;
+  block-size: 0.68rem;
+  margin-top: 0.27rem;
+  border-radius: 50%;
+  background: #9ca3af;
+}
+
+.progress-task[data-status='running'] .progress-task-status {
+  background: #0f766e;
+}
+
+.progress-task[data-status='completed'] .progress-task-status {
+  background: #047857;
+}
+
+.progress-task[data-status='failed'] .progress-task-status,
+.progress-task[data-status='cancelled'] .progress-task-status {
+  background: #b91c1c;
+}
+
+.progress-task-title {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.progress-task-detail {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .result {
@@ -503,5 +645,13 @@ button[type='submit']:disabled {
 
   .history-head-actions {
     width: 100%;
+  }
+
+  .action-buttons {
+    width: 100%;
+  }
+
+  .action-buttons button {
+    flex: 1 1 auto;
   }
 }

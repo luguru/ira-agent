@@ -191,9 +191,30 @@
           </section>
 
           <div class="actions">
-            <button id="submit-button" type="submit">Iniciar auditoría</button>
+            <div class="action-buttons">
+              <button id="submit-button" type="submit">Iniciar auditoría</button>
+              <button id="cancel-button" type="button" class="cancel-button" hidden disabled>
+                Cancelar auditoría
+              </button>
+            </div>
             <output class="status" id="form-status" aria-live="polite"></output>
           </div>
+
+          <section
+            class="progress-panel"
+            id="progress-panel"
+            aria-labelledby="progress-title"
+            hidden
+          >
+            <div class="progress-head">
+              <h3 id="progress-title">Progreso de auditoría</h3>
+              <p id="progress-percent" class="progress-percent">0%</p>
+            </div>
+            <p id="progress-message" class="progress-message">Esperando inicio...</p>
+            <p id="progress-eta" class="progress-eta">Estimando tiempo restante...</p>
+            <progress id="progress-track" class="progress-track" value="0" max="100">0%</progress>
+            <ul id="progress-tasks" class="progress-tasks"></ul>
+          </section>
         </form>
 
         <div class="result" id="run-result" hidden>

@@ -47,6 +47,7 @@ test('shouldVisitUrl descarta origen externo, excluidos y binarios', () => {
   assert.equal(shouldVisitUrl('https://other.com/page', baseConfig), false);
   assert.equal(shouldVisitUrl('https://example.com/private/secret', baseConfig), false);
   assert.equal(shouldVisitUrl('https://example.com/file.pdf', baseConfig), false);
+  assert.equal(shouldVisitUrl('https://example.com/tracks/ruta.gpx', baseConfig), false);
 });
 
 test('shouldVisitUrl permite URL interna incluida', () => {

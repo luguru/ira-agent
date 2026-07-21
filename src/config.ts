@@ -14,6 +14,19 @@ export async function readConfig(configPath: string): Promise<AuditConfig> {
   return JSON.parse(raw) as AuditConfig;
 }
 
+export function filterFlowsByAvailableViewports(
+  flows: FlowConfig[] | undefined,
+  viewports: AuditConfig['viewports'],
+): FlowConfig[] {
+  if (!Array.isArray(flows) || flows.length === 0) {
+    return [];
+  }
+
+  const availableViewports = new Set(viewports.map((viewport) => viewport.name));
+
+  return flows.filter((flow) => !flow.viewport || availableViewports.has(flow.viewport));
+}
+
 export function validateConfig(config: AuditConfig): void {
   if (!config.baseUrl) {
     throw new Error('Falta config.baseUrl');

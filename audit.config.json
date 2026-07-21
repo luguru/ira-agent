@@ -33,7 +33,7 @@
       "steps": [
         {
           "action": "click",
-          "selector": "button[aria-controls], button.menu, .menu-button"
+          "selector": "button[aria-label*='menu' i], button[class*='menu' i], .menu-button, .menu-toggle, .hamburger, .navbar-toggler"
         }
       ]
     }

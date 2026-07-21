@@ -61,9 +61,17 @@ Desde la landing puedes indicar:
 - Selección de `axeTags` por checkbox.
 - Los `axeTags` muestran explicación en lenguaje simple para facilitar su uso a perfiles no técnicos.
 - Selección de `viewports` por checkbox.
+- Si desactivas un viewport en la landing, los `flows` vinculados a ese viewport se omiten automáticamente para evitar errores de validación.
 - Historial de ejecuciones previas (solo runs existentes en `runs/`) con acciones para abrir `report.html` en pestaña, eliminar runs individuales y eliminar todas las auditorías listadas.
 
 Al ejecutar, el backend genera los mismos artefactos de siempre en `runs/` y devuelve enlace directo a `report.html`.
+
+Durante una ejecución desde la landing:
+
+- Se muestra un panel de progreso en tiempo real con porcentaje y tareas (preparación, rastreo, análisis y reporte).
+- Se muestra una estimación de tiempo restante basada en el ritmo de tareas completadas.
+- Puedes cancelar la auditoría con el botón `Cancelar auditoría` mientras esté en curso.
+- Si ocurre un error, la interfaz muestra un mensaje claro en español para facilitar diagnóstico y siguientes pasos.
 
 Comandos de soporte:
 
@@ -208,8 +216,13 @@ npm run audit
 Si un flow falla por selector:
 
 - Revisar selectors en audit.config.json dentro de flows
+- Priorizar selectors específicos de menú y evitar patrones demasiado amplios como `button[aria-controls]`
 - Probar primero con maxPages 1 y maxDepth 0
 - Repetir ejecución tras ajustar selector
+
+Nota:
+
+- El crawler excluye automáticamente archivos `.gpx` (tracks/descargas) para evitar análisis no HTML.
 
 Si una ejecución tarda demasiado:
 
