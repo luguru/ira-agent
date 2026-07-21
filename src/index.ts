@@ -17,6 +17,10 @@ async function main(): Promise<void> {
     config.baseUrl = args.url;
   }
 
+  if (args.siteName) {
+    config.siteName = args.siteName;
+  }
+
   if (args.maxPages !== undefined) {
     config.maxPages = parsePositiveIntegerArg(args.maxPages, '--maxPages');
   }
