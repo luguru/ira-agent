@@ -13,6 +13,7 @@ export async function writeHtmlReport(
   metrics: RunMetrics,
   trend: RunTrend,
 ): Promise<void> {
+  const incidentPrefix = resolveIncidentPrefix(run.config.issueIdPrefix);
   const auditedSiteLabel = resolveAuditedSiteLabel(run);
   const findings = run.results.flatMap((result) => result.findings);
   const violations = findings.filter((finding) => finding.status === 'violation');
@@ -28,13 +29,28 @@ export async function writeHtmlReport(
   <meta charset="utf-8">
   <title>Informe automático de accesibilidad - ${escapeHtml(run.siteName)}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="../../public/assets/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="icon" type="image/png" href="../../public/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="report.css">
   <script defer src="report.js"></script>
 </head>
 <body>
   <header class="report-header">
     <div class="report-header-inner">
-      <p class="report-eyebrow">Radar A11y · Informe automático</p>
+      <div class="report-brand-row">
+        <img
+          class="report-brand-logo"
+          src="/assets/logo-radar-a11y_horizontal_dark.png"
+          onerror="if(!this.dataset.assetFallback){this.dataset.assetFallback='1';this.src='../../public/assets/logo-radar-a11y_horizontal_dark.png';}"
+          alt="Radar A11y"
+        >
+        <p class="report-eyebrow">Radar A11y · Informe automático</p>
+      </div>
       <h1>Informe automático de accesibilidad</h1>
       <p class="report-site-name">${escapeHtml(auditedSiteLabel)}</p>
       <div class="report-header-meta" role="list" aria-label="Metadatos del informe">
@@ -130,8 +146,8 @@ export async function writeHtmlReport(
 
     <section aria-labelledby="detalle">
       <h2 id="detalle">Detalle de incidencias</h2>
-      ${renderFindingsLegend()}
-      ${renderFindingsTable(findings, run.generatedAt)}
+      ${renderFindingsLegend(incidentPrefix)}
+      ${renderFindingsTable(findings, run.generatedAt, incidentPrefix)}
     </section>
   </main>
 </body>
@@ -283,7 +299,11 @@ function renderPagesTable(run: AuditRun): string {
   </table>`;
 }
 
-function renderFindingsTable(findings: Finding[], detectedAt: string): string {
+function renderFindingsTable(
+  findings: Finding[],
+  detectedAt: string,
+  incidentPrefix: string,
+): string {
   if (findings.length === 0) {
     return '<div class="findings-empty"><p>No se han detectado incidencias automáticas ni hallazgos pendientes de revisión por axe-core.</p></div>';
   }
@@ -291,7 +311,7 @@ function renderFindingsTable(findings: Finding[], detectedAt: string): string {
   const viewports = getUniqueSortedValues(findings.map((finding) => finding.viewport));
   const impacts = getUniqueSortedValues(findings.map((finding) => finding.impact ?? 'sin impacto'));
   const findingsWithIds = findings.map((finding, index) => ({
-    incidentId: formatIncidentId(index + 1),
+    incidentId: formatIncidentId(index + 1, incidentPrefix),
     finding,
   }));
   const findingsByRule = groupBy(findingsWithIds, (entry) => entry.finding.ruleId);
@@ -498,7 +518,9 @@ function formatFilterLabel(value: string): string {
   return value;
 }
 
-function renderFindingsLegend(): string {
+function renderFindingsLegend(incidentPrefix: string): string {
+  const incidentIdExample = `${incidentPrefix}-001`;
+
   return `<aside class="findings-legend" aria-labelledby="leyenda-detalle-titulo">
     <h3 id="leyenda-detalle-titulo">Leyenda de lectura</h3>
     <p class="legend-intro">Esta sección te ayuda a interpretar cada incidencia, tanto si revisas accesibilidad por primera vez como si ya tienes experiencia técnica.</p>
@@ -508,7 +530,7 @@ function renderFindingsLegend(): string {
         <dl class="legend-definitions">
           <div class="legend-item">
             <dt>ID</dt>
-            <dd>Identificador único de incidencia, por ejemplo <code>RADAR-001</code>.</dd>
+            <dd>Identificador único de incidencia, por ejemplo <code>${escapeHtml(incidentIdExample)}</code>.</dd>
           </div>
           <div class="legend-item">
             <dt>Título</dt>
@@ -621,8 +643,24 @@ function formatFlowLabel(value: string): string {
   return value;
 }
 
-function formatIncidentId(index: number): string {
-  return `RADAR-${String(index).padStart(3, '0')}`;
+function formatIncidentId(index: number, incidentPrefix: string): string {
+  return `${incidentPrefix}-${String(index).padStart(3, '0')}`;
+}
+
+function resolveIncidentPrefix(value: string | undefined): string {
+  if (!value) {
+    return 'RADAR';
+  }
+
+  const normalized = value
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^A-Za-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
+    .toUpperCase();
+
+  return normalized || 'RADAR';
 }
 
 function mapFindingStatusToWorkflowStatus(status: Finding['status']): string {

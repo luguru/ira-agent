@@ -153,3 +153,24 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     await rm(outDir, { recursive: true, force: true });
   }
 });
+
+test('writeHtmlReport usa prefijo personalizado para IDs de incidencias', async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), 'radar-report-prefix-'));
+
+  try {
+    const run = createMockAuditRun();
+    run.config.issueIdPrefix = 'cliente-a11y';
+
+    const metrics = calculateRunMetrics(run);
+    const trend = buildRunTrend(metrics, metrics, 'baseline-mock-2');
+
+    await writeHtmlReport(run, outDir, metrics, trend);
+
+    const html = await readFile(path.join(outDir, 'report.html'), 'utf8');
+
+    assert.match(html, /CLIENTE-A11Y-001/);
+    assert.match(html, /por ejemplo <code>CLIENTE-A11Y-001<\/code>/);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});

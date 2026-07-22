@@ -29,6 +29,7 @@ export type FlowConfig = {
 
 export type AuditConfig = {
   siteName: string;
+  issueIdPrefix?: string;
   baseUrl: string;
   maxPages: number;
   maxDepth: number;

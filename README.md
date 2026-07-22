@@ -66,6 +66,8 @@ npm run web:local
 
 Después abre `http://localhost:4173`.
 
+La landing y el informe HTML usan el UI kit corporativo de Radar A11y y cargan branding desde `public/assets` (logos y favicons), manteniendo coherencia visual entre ejecución y reporte.
+
 Nota de seguridad para local/dev:
 
 - Por defecto, Radar A11y bloquea destinos locales/privados para reducir riesgo SSRF.
@@ -80,6 +82,7 @@ Desde la landing puedes indicar:
 
 - URL a analizar (obligatoria).
 - Título de auditoría (opcional). Si queda vacío, se usa automáticamente el `<title>` de la URL objetivo; si no existe, se intenta con el primer `<h1>` y, como último fallback, `Sitio de prueba`.
+- Prefijo de ID de incidencias (opcional). Si queda vacío, se usa `RADAR-{numero_sucesivo}`; si se informa, el reporte usará ese prefijo (por ejemplo, `PROYECTO-001`).
 - `maxPages` y `maxDepth` (opcionales, con fallback a valores por defecto de `audit.config.json`).
 - `Analizar sitio completo` (fija `maxPages` y `maxDepth` a `99999` y desactiva ambos inputs).
 - Selección de `axeTags` por checkbox.

@@ -13,12 +13,14 @@ const axeTagsContainer = document.getElementById('axeTags-options');
 const viewportsContainer = document.getElementById('viewports-options');
 
 const siteNameHint = document.getElementById('siteName-hint');
+const issueIdPrefixHint = document.getElementById('issueIdPrefix-hint');
 const maxPagesHint = document.getElementById('maxPages-hint');
 const maxDepthHint = document.getElementById('maxDepth-hint');
 const fullSiteHint = document.getElementById('fullSite-hint');
 
 const effectiveSiteName = document.getElementById('effective-siteName');
 const effectiveUrl = document.getElementById('effective-url');
+const effectiveIssueIdPrefix = document.getElementById('effective-issueIdPrefix');
 const effectiveMaxPages = document.getElementById('effective-maxPages');
 const effectiveMaxDepth = document.getElementById('effective-maxDepth');
 const effectiveAxeTags = document.getElementById('effective-axeTags');
@@ -113,6 +115,7 @@ function bindEvents() {
   });
 
   form.siteName.addEventListener('input', renderEffectiveConfig);
+  form.issueIdPrefix.addEventListener('input', renderEffectiveConfig);
   form.maxPages.addEventListener('input', renderEffectiveConfig);
   form.maxDepth.addEventListener('input', renderEffectiveConfig);
 
@@ -138,6 +141,7 @@ function bindEvents() {
     const payload = {
       url,
       siteName: form.siteName.value.trim() || undefined,
+      issueIdPrefix: normalizeIncidentIdPrefix(form.issueIdPrefix.value) || undefined,
       fullSite: fullSiteInput.checked,
       maxPages: fullSiteInput.checked ? undefined : normalizeOptionalNumber(form.maxPages.value),
       maxDepth: fullSiteInput.checked ? undefined : normalizeOptionalNumber(form.maxDepth.value),
@@ -226,11 +230,15 @@ async function loadOptions() {
 
 function renderDefaults(data) {
   resolvedSiteNameDefault = data.defaults.siteName || 'Sitio de prueba';
+  const defaultIncidentIdPrefix = normalizeIncidentIdPrefix(data.defaults.issueIdPrefix) || 'RADAR';
+
   siteNameHint.textContent = `Si lo dejas vacío, se usará por defecto: ${resolvedSiteNameDefault}.`;
+  issueIdPrefixHint.textContent = `Introduce el prefijo para el ID de incidencias. Si lo dejas vacío, se usará ${defaultIncidentIdPrefix}-{numero_sucesivo}.`;
   maxPagesHint.textContent = `Si lo dejas vacío, se usará por defecto: ${data.defaults.maxPages}.`;
   maxDepthHint.textContent = `Si lo dejas vacío, se usará por defecto: ${data.defaults.maxDepth}.`;
   fullSiteHint.textContent = `Al activar este modo, maxPages y maxDepth se fijan automáticamente a ${data.fullSite.maxPages}.`;
 
+  form.issueIdPrefix.placeholder = defaultIncidentIdPrefix;
   maxPagesInput.placeholder = String(data.defaults.maxPages);
   maxDepthInput.placeholder = String(data.defaults.maxDepth);
 }
@@ -302,9 +310,12 @@ function renderEffectiveConfig() {
 
   const fallbackTags = options.axeTags || [];
   const fallbackViewports = (options.viewports || []).map((item) => item.name);
+  const defaultIncidentIdPrefix = normalizeIncidentIdPrefix(options.defaults.issueIdPrefix) || 'RADAR';
 
   const finalSiteName = form.siteName.value.trim() || resolvedSiteNameDefault;
   const finalUrl = form.url.value.trim() || '(pendiente de completar)';
+  const finalIncidentIdPrefix =
+    normalizeIncidentIdPrefix(form.issueIdPrefix.value) || defaultIncidentIdPrefix;
   const finalMaxPages = usingFullSite
     ? options.fullSite.maxPages
     : form.maxPages.value.trim() || options.defaults.maxPages;
@@ -316,10 +327,25 @@ function renderEffectiveConfig() {
 
   effectiveSiteName.textContent = finalSiteName;
   effectiveUrl.textContent = finalUrl;
+  effectiveIssueIdPrefix.textContent = `${finalIncidentIdPrefix}-{numero_sucesivo}`;
   effectiveMaxPages.textContent = String(finalMaxPages);
   effectiveMaxDepth.textContent = String(finalMaxDepth);
   effectiveAxeTags.textContent = finalTags.join(', ');
   effectiveViewports.textContent = finalViewports.join(', ');
+}
+
+function normalizeIncidentIdPrefix(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^A-Za-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
+    .toUpperCase();
 }
 
 async function updateResolvedSiteNameDefault() {

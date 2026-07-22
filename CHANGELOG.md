@@ -6,6 +6,22 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+### Changed
+
+- Diseño y branding:
+  - La landing local adopta el nuevo sistema visual corporativo del UI kit (tokens de color, tipografía Inter, jerarquía y espaciado en múltiplos de 8 px).
+  - Se incorporan logos oficiales y favicon en la experiencia web para reforzar consistencia de marca.
+  - El reporte HTML generado se actualiza con cabecera de marca, tipografía y paleta alineadas con el design system.
+
+- Landing y trazabilidad de incidencias:
+  - Se añade un nuevo campo opcional en "Nueva auditoría" para definir el prefijo del ID de incidencias.
+  - Si el campo se deja vacío, se aplica automáticamente el formato por defecto `RADAR-{numero_sucesivo}`.
+  - El prefijo configurado viaja hasta el reporte HTML y se usa al generar identificadores de incidencia (ejemplo: `PROYECTO-001`).
+
+- Servidor web local:
+  - Se amplía la entrega de estáticos para soportar `assets` públicos y favicons.
+  - Se añaden tipos MIME para recursos de imagen (`png`, `ico`, `svg`, `webp`) en la resolución de contenido.
+
 ## [1.0.0] - 2026-07-22
 
 ### Breaking Changes

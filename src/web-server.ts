@@ -7,15 +7,22 @@ import path from 'node:path';
 import process from 'node:process';
 import { createAiSummaryProvider } from './ai-summary-provider.js';
 import { isAuditCancelledError, runAudit, type AuditProgressEvent } from './audit-engine.js';
-import { filterFlowsByAvailableViewports, readConfig, validateConfig } from './config.js';
+import {
+  filterFlowsByAvailableViewports,
+  normalizeIncidentIdPrefix,
+  readConfig,
+  validateConfig,
+} from './config.js';
 import { assertPublicHttpUrl, fetchPublicText } from './network-security.js';
+import { writeHtmlReport } from './report-html.js';
 import { readRunHistory } from './run-metrics.js';
-import type { AuditConfig, ViewportConfig } from './types.js';
+import type { AuditConfig, AuditRun, RunMetrics, RunTrend, ViewportConfig } from './types.js';
 import { getSafeRunId } from './url-utils.js';
 
 type LaunchAuditPayload = {
   url?: unknown;
   siteName?: unknown;
+  issueIdPrefix?: unknown;
   maxPages?: unknown;
   maxDepth?: unknown;
   fullSite?: unknown;
@@ -26,6 +33,7 @@ type LaunchAuditPayload = {
 type PublicOptions = {
   defaults: {
     siteName: string;
+    issueIdPrefix: string;
     maxPages: number;
     maxDepth: number;
   };
@@ -792,7 +800,31 @@ async function tryServePublicAsset(
     '/': path.join(PUBLIC_DIR, 'landing.html'),
     '/landing.css': path.join(PUBLIC_DIR, 'landing.css'),
     '/landing.js': path.join(PUBLIC_DIR, 'landing.js'),
+    '/favicon.ico': path.join(PUBLIC_DIR, 'assets', 'favicon.ico'),
+    '/favicon.png': path.join(PUBLIC_DIR, 'assets', 'favicon.png'),
   };
+
+  if (pathname.startsWith('/assets/')) {
+    const assetPath = resolvePublicAssetPath(pathname);
+
+    if (!assetPath) {
+      return false;
+    }
+
+    await sendFile(response, assetPath);
+    return true;
+  }
+
+  if (pathname.startsWith('/public/assets/')) {
+    const assetPath = resolvePublicAssetPath(pathname.replace('/public/', '/'));
+
+    if (!assetPath) {
+      return false;
+    }
+
+    await sendFile(response, assetPath);
+    return true;
+  }
 
   const assetPath = assetPathByRoute[pathname];
 
@@ -812,7 +844,38 @@ async function serveRunArtifact(pathname: string, response: ServerResponse): Pro
     return;
   }
 
+  if (path.basename(targetPath) === 'report.html') {
+    await tryRefreshRunReport(targetPath);
+  }
+
   await sendFile(response, targetPath);
+}
+
+async function tryRefreshRunReport(reportFilePath: string): Promise<void> {
+  const runDir = path.dirname(reportFilePath);
+  const resultPath = path.join(runDir, 'result.json');
+  const trendPath = path.join(runDir, 'trend.json');
+
+  try {
+    const [resultRaw, trendRaw] = await Promise.all([
+      readFile(resultPath, 'utf8'),
+      readFile(trendPath, 'utf8'),
+    ]);
+
+    const run = JSON.parse(resultRaw) as AuditRun;
+    const trendPayload = JSON.parse(trendRaw) as {
+      metrics?: RunMetrics;
+      trend?: RunTrend;
+    };
+
+    if (!trendPayload.metrics || !trendPayload.trend) {
+      return;
+    }
+
+    await writeHtmlReport(run, runDir, trendPayload.metrics, trendPayload.trend);
+  } catch {
+    // Si no hay artefactos o son inválidos, se conserva el report.html existente.
+  }
 }
 
 function parsePort(value: string): number {
@@ -835,6 +898,7 @@ function buildPublicOptions(config: AuditConfig): PublicOptions {
   return {
     defaults: {
       siteName: config.siteName,
+      issueIdPrefix: normalizeIncidentIdPrefix(config.issueIdPrefix),
       maxPages: config.maxPages,
       maxDepth: config.maxDepth,
     },
@@ -1065,9 +1129,14 @@ function buildConfigFromPayload(baseConfig: AuditConfig, payload: LaunchAuditPay
   config.baseUrl = baseUrl;
 
   const siteName = readOptionalText(payload.siteName);
+  const issueIdPrefix = readOptionalText(payload.issueIdPrefix);
 
   if (siteName) {
     config.siteName = siteName;
+  }
+
+  if (issueIdPrefix) {
+    config.issueIdPrefix = normalizeIncidentIdPrefix(issueIdPrefix);
   }
 
   const fullSite = payload.fullSite === true;
@@ -1198,6 +1267,23 @@ function resolveRunsPath(requestPathname: string): string | null {
   return absolutePath;
 }
 
+function resolvePublicAssetPath(requestPathname: string): string | null {
+  const relativePath = requestPathname.replace(/^\//, '');
+  const decodedPath = decodeURIComponent(relativePath);
+  const absolutePath = path.resolve(PUBLIC_DIR, decodedPath);
+  const relativeToPublic = path.relative(PUBLIC_DIR, absolutePath);
+
+  if (
+    relativeToPublic.startsWith('..') ||
+    path.isAbsolute(relativeToPublic) ||
+    relativeToPublic.includes('\u0000')
+  ) {
+    return null;
+  }
+
+  return absolutePath;
+}
+
 async function sendFile(response: ServerResponse, filePath: string): Promise<void> {
   const content = await readFile(filePath);
   const contentType = inferContentType(filePath);
@@ -1226,6 +1312,14 @@ function inferContentType(filePath: string): string {
       return 'text/markdown; charset=utf-8';
     case '.ndjson':
       return 'application/x-ndjson; charset=utf-8';
+    case '.png':
+      return 'image/png';
+    case '.ico':
+      return 'image/x-icon';
+    case '.svg':
+      return 'image/svg+xml; charset=utf-8';
+    case '.webp':
+      return 'image/webp';
     default:
       return 'application/octet-stream';
   }
