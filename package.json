@@ -1,20 +1,20 @@
 {
-  "name": "ira-agent",
-  "version": "0.6.0",
-  "description": "Agente local para análisis automático de accesibilidad y generación de informe IRA automático.",
+  "name": "radar-a11y",
+  "version": "1.0.0",
+  "description": "Herramienta local para analisis automatico de accesibilidad y generacion de informes Radar A11y.",
   "type": "module",
   "scripts": {
     "audit": "tsx src/index.ts",
-    "audit:local": "IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts",
+    "audit:local": "RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts",
     "audit:scenario:public": "tsx src/index.ts --config scenarios/public.example.json",
-    "audit:scenario:private": "IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/private-network.example.json",
-    "audit:scenario:auth": "node -e \"const required=['IRA_AUDIT_USER','IRA_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && tsx src/index.ts --config scenarios/authenticated.example.json",
-    "audit:scenario:auth:private": "node -e \"const required=['IRA_AUDIT_USER','IRA_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/authenticated.example.json",
-    "audit:scenario:private:mock": "IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/private-network.localhost.example.json",
-    "audit:scenario:auth:mock": "node -e \"const required=['IRA_AUDIT_USER','IRA_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/authenticated.localhost.example.json",
+    "audit:scenario:private": "RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/private-network.example.json",
+    "audit:scenario:auth": "node -e \"const required=['RADAR_AUDIT_USER','RADAR_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && tsx src/index.ts --config scenarios/authenticated.example.json",
+    "audit:scenario:auth:private": "node -e \"const required=['RADAR_AUDIT_USER','RADAR_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/authenticated.example.json",
+    "audit:scenario:private:mock": "RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/private-network.localhost.example.json",
+    "audit:scenario:auth:mock": "node -e \"const required=['RADAR_AUDIT_USER','RADAR_AUDIT_PASSWORD'];const missing=required.filter((name)=>!process.env[name]);if(missing.length){console.error('Faltan variables de entorno: '+missing.join(', '));process.exit(1);}\" && RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/index.ts --config scenarios/authenticated.localhost.example.json",
     "dev": "tsx src/index.ts",
     "web": "tsx src/web-server.ts",
-    "web:local": "IRA_ALLOW_PRIVATE_NETWORKS=true tsx src/web-server.ts",
+    "web:local": "RADAR_ALLOW_PRIVATE_NETWORKS=true tsx src/web-server.ts",
     "mock:site": "node scenarios/mock-site.mjs",
     "build": "tsc -p tsconfig.build.json",
     "test": "tsx --test tests/*.test.ts",
@@ -30,7 +30,8 @@
   "keywords": [
     "accessibility",
     "wcag",
-    "ira",
+    "a11y",
+    "radar",
     "axe-core",
     "playwright"
   ],
@@ -53,10 +54,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/luguru/ira-agent.git"
+    "url": "git+https://github.com/luguru/radar-a11y.git"
   },
   "bugs": {
-    "url": "https://github.com/luguru/ira-agent/issues"
+    "url": "https://github.com/luguru/radar-a11y/issues"
   },
-  "homepage": "https://github.com/luguru/ira-agent#readme"
+  "homepage": "https://github.com/luguru/radar-a11y#readme"
 }

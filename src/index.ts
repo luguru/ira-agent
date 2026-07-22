@@ -115,7 +115,7 @@ function printSummary(
   console.log(`Incremental NDJSON: ${incrementalResultFilePath}`);
   console.log(`Histórico global: ${historyFilePath}`);
   console.log(`HTML: ${path.join(outDir, 'report.html')}`);
-  console.log(`IRA Markdown: ${path.join(outDir, 'informe-ira-automatico.md')}`);
+  console.log(`Radar Markdown: ${path.join(outDir, 'informe-radar-a11y-automatico.md')}`);
 }
 
 function formatDelta(value: number): string {

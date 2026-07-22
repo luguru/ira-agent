@@ -9,33 +9,33 @@ test('resolveFlowStepValue mantiene texto literal cuando no hay placeholder', ()
 });
 
 test('resolveFlowStepValue resuelve variable de entorno con placeholder', () => {
-  const previous = process.env.IRA_TEST_LOGIN_USER;
-  process.env.IRA_TEST_LOGIN_USER = 'qa-user@example.com';
+  const previous = process.env.RADAR_TEST_LOGIN_USER;
+  process.env.RADAR_TEST_LOGIN_USER = 'qa-user@example.com';
 
   try {
-    assert.equal(resolveFlowStepValue('{{env:IRA_TEST_LOGIN_USER}}'), 'qa-user@example.com');
-    assert.equal(resolveFlowStepValue('{{ env:IRA_TEST_LOGIN_USER }}'), 'qa-user@example.com');
+    assert.equal(resolveFlowStepValue('{{env:RADAR_TEST_LOGIN_USER}}'), 'qa-user@example.com');
+    assert.equal(resolveFlowStepValue('{{ env:RADAR_TEST_LOGIN_USER }}'), 'qa-user@example.com');
   } finally {
     if (previous === undefined) {
-      delete process.env.IRA_TEST_LOGIN_USER;
+      delete process.env.RADAR_TEST_LOGIN_USER;
     } else {
-      process.env.IRA_TEST_LOGIN_USER = previous;
+      process.env.RADAR_TEST_LOGIN_USER = previous;
     }
   }
 });
 
 test('resolveFlowStepValue falla cuando el placeholder referencia una variable ausente', () => {
-  const previous = process.env.IRA_TEST_MISSING_SECRET;
-  delete process.env.IRA_TEST_MISSING_SECRET;
+  const previous = process.env.RADAR_TEST_MISSING_SECRET;
+  delete process.env.RADAR_TEST_MISSING_SECRET;
 
   try {
     assert.throws(
-      () => resolveFlowStepValue('{{env:IRA_TEST_MISSING_SECRET}}'),
+      () => resolveFlowStepValue('{{env:RADAR_TEST_MISSING_SECRET}}'),
       /variable de entorno no definida o vacia/i,
     );
   } finally {
     if (previous !== undefined) {
-      process.env.IRA_TEST_MISSING_SECRET = previous;
+      process.env.RADAR_TEST_MISSING_SECRET = previous;
     }
   }
 });

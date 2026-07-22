@@ -5,7 +5,7 @@ import path from 'node:path';
 import type { AuditRun, Finding, RunMetrics, RunTrend } from './types.js';
 import { localizeImpact, localizeTechnicalText } from './technical-localization.js';
 
-export async function writeIraMarkdown(
+export async function writeRadarMarkdown(
   run: AuditRun,
   outDir: string,
   metrics: RunMetrics,
@@ -19,7 +19,7 @@ export async function writeIraMarkdown(
   const criteria = getCriteriaSummary(findings);
   const topRules = getTopRules(findings);
 
-  const content = `# Informe IRA automático de accesibilidad
+  const content = `# Informe Radar A11y automático de accesibilidad
 
 ## 1. Datos generales
 
@@ -98,7 +98,7 @@ El detalle completo de incidencias se encuentra en:
 
 `;
 
-  await writeFile(path.join(outDir, 'informe-ira-automatico.md'), content, 'utf8');
+  await writeFile(path.join(outDir, 'informe-radar-a11y-automatico.md'), content, 'utf8');
 }
 
 function renderTrend(metrics: RunMetrics, trend: RunTrend): string {

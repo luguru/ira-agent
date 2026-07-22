@@ -10,7 +10,7 @@ import { buildRunTrend, calculateRunMetrics } from '../src/run-metrics.js';
 import { createMockAuditRun } from './fixtures/mock-audit-run.js';
 
 test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => {
-  const outDir = await mkdtemp(path.join(os.tmpdir(), 'ira-report-mock-'));
+  const outDir = await mkdtemp(path.join(os.tmpdir(), 'radar-report-mock-'));
 
   try {
     const run = createMockAuditRun();
@@ -54,7 +54,7 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /<option value="minor">Bajo<\/option>/);
     assert.match(html, /class="finding-rule-group" data-rule-id="color-contrast"/);
     assert.match(html, /class="finding-rule-summary"/);
-    assert.match(html, /IRA-001/);
+    assert.match(html, /RADAR-001/);
     assert.match(html, /<span class="meta-label">Responsable<\/span>/);
     assert.match(html, /<span class="meta-label">Fecha de validación<\/span>/);
     assert.match(html, /<span class="meta-label">Fecha de reapertura<\/span>/);
@@ -149,6 +149,27 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(css, /\.finding-body\[hidden\]/);
     assert.match(css, /\.chip-rule code/);
     assert.match(js, /finding-filter-impact/);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
+test('writeHtmlReport usa prefijo personalizado para IDs de incidencias', async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), 'radar-report-prefix-'));
+
+  try {
+    const run = createMockAuditRun();
+    run.config.issueIdPrefix = 'cliente-a11y';
+
+    const metrics = calculateRunMetrics(run);
+    const trend = buildRunTrend(metrics, metrics, 'baseline-mock-2');
+
+    await writeHtmlReport(run, outDir, metrics, trend);
+
+    const html = await readFile(path.join(outDir, 'report.html'), 'utf8');
+
+    assert.match(html, /CLIENTE-A11Y-001/);
+    assert.match(html, /por ejemplo <code>CLIENTE-A11Y-001<\/code>/);
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }

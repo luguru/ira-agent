@@ -59,3 +59,27 @@ test('validateConfig mantiene failOnFlowError=true cuando esta activado', () => 
 
   assert.equal(config.failOnFlowError, true);
 });
+
+test('validateConfig aplica prefijo de incidencias por defecto', () => {
+  const config = createBaseConfig({
+    action: 'assert-url-includes',
+    value: '/app/',
+  });
+
+  config.issueIdPrefix = undefined;
+  validateConfig(config);
+
+  assert.equal(config.issueIdPrefix, 'RADAR');
+});
+
+test('validateConfig normaliza prefijo de incidencias personalizado', () => {
+  const config = createBaseConfig({
+    action: 'assert-url-includes',
+    value: '/app/',
+  });
+
+  config.issueIdPrefix = ' equipo a11y 2026 ';
+  validateConfig(config);
+
+  assert.equal(config.issueIdPrefix, 'EQUIPO-A11Y-2026');
+});

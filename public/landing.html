@@ -3,22 +3,35 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>IRA Agent | Lanzar auditoría</title>
+    <title>Radar A11y | Lanzar auditoría</title>
+    <link rel="icon" href="./assets/favicon.ico" sizes="any" />
+    <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="./assets/favicon.png" />
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="apple-touch-icon" href="./assets/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/landing.css" />
-    <script type="module" src="/landing.js"></script>
+    <link rel="stylesheet" href="./landing.css" />
+    <script type="module" src="./landing.js"></script>
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
 
     <main class="layout">
       <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">IRA · Auditoría automática</p>
+        <div class="hero-brand-row">
+          <img
+            class="hero-brand-logo"
+            src="/assets/logo-radar-a11y_horizontal_dark.png"
+            alt="Radar A11y"
+          />
+        </div>
+        <p class="eyebrow">Radar A11y · Auditoría automática</p>
         <h1 id="hero-title">Lanza tu auditoría en minutos</h1>
         <p class="hero-copy">
           Define alcance, criterios y dispositivos en una sola pantalla. El motor ejecuta Playwright
@@ -32,7 +45,17 @@
       </section>
 
       <section class="panel" aria-labelledby="form-title">
-        <h2 id="form-title">Nueva auditoría</h2>
+        <div class="panel-brand-row">
+          <img
+            class="panel-brand-logo"
+            src="/assets/logo-radar-a11y_vertical.png"
+            alt="Logotipo Radar A11y"
+          />
+          <div class="panel-title-wrap">
+            <h2 id="form-title">Nueva auditoría</h2>
+            <p class="panel-subtitle">Configuración operativa para ejecución automática</p>
+          </div>
+        </div>
         <p class="panel-copy">
           Solo la URL es obligatoria. El resto usa valores por defecto si lo dejas vacío.
         </p>
@@ -43,6 +66,10 @@
             <li>
               <strong>Título de la auditoría</strong>: nombre interno para identificar esta
               revisión.
+            </li>
+            <li>
+              <strong>Prefijo ID de incidencias</strong>: texto que se usará al inicio del ID de
+              cada incidencia (por ejemplo, RADAR-001).
             </li>
             <li><strong>maxPages</strong>: número máximo de páginas que se revisarán.</li>
             <li>
@@ -86,6 +113,21 @@
               autocomplete="off"
             />
             <p class="hint" id="siteName-hint">Si lo dejas vacío, se usará el valor por defecto.</p>
+          </div>
+
+          <div class="field">
+            <label for="issueIdPrefix">Prefijo ID de incidencias</label>
+            <input
+              id="issueIdPrefix"
+              name="issueIdPrefix"
+              type="text"
+              placeholder="RADAR"
+              autocomplete="off"
+            />
+            <p class="hint" id="issueIdPrefix-hint">
+              Introduce el prefijo del identificador de incidencias. Si lo dejas vacío, se usará
+              RADAR-{numero_sucesivo}.
+            </p>
           </div>
 
           <div class="grid-two">
@@ -170,6 +212,10 @@
               <div>
                 <dt>URL</dt>
                 <dd id="effective-url">-</dd>
+              </div>
+              <div>
+                <dt>ID incidencias</dt>
+                <dd id="effective-issueIdPrefix">-</dd>
               </div>
               <div>
                 <dt>maxPages</dt>

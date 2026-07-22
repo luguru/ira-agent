@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AuditConfig, FlowConfig, FlowStep, WaitUntil } from './types.js';
 
+const DEFAULT_INCIDENT_ID_PREFIX = 'RADAR';
+
 export type CliArgs = {
   config?: string;
   url?: string;
@@ -40,6 +42,8 @@ export function validateConfig(config: AuditConfig): void {
     throw new Error('Falta config.siteName');
   }
 
+  config.issueIdPrefix = normalizeIncidentIdPrefix(config.issueIdPrefix);
+
   if (!config.viewports || config.viewports.length === 0) {
     throw new Error('Debes configurar al menos un viewport');
   }
@@ -75,6 +79,29 @@ export function validateConfig(config: AuditConfig): void {
   for (const flow of config.flows) {
     validateFlow(flow, config);
   }
+}
+
+export function normalizeIncidentIdPrefix(value: unknown): string {
+  if (typeof value !== 'string') {
+    return DEFAULT_INCIDENT_ID_PREFIX;
+  }
+
+  let normalized = value
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^A-Za-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .toUpperCase();
+
+  while (normalized.startsWith('-') || normalized.startsWith('_')) {
+    normalized = normalized.slice(1);
+  }
+
+  while (normalized.endsWith('-') || normalized.endsWith('_')) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized || DEFAULT_INCIDENT_ID_PREFIX;
 }
 
 function ensureInteger(value: number, name: string, min: number): number {

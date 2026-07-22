@@ -6,18 +6,18 @@ This branch requires final runs against a real authenticated target (and roles i
 
 ## Required inputs
 
-- IRA_AUTH_URL
-- IRA_AUDIT_USER
-- IRA_AUDIT_PASSWORD
-- Optional: IRA_AUTH_ROLE, IRA_AUTH_PRIVATE, IRA_SITE_NAME, IRA_MAX_PAGES, IRA_MAX_DEPTH
+- RADAR_AUTH_URL
+- RADAR_AUDIT_USER
+- RADAR_AUDIT_PASSWORD
+- Optional: RADAR_AUTH_ROLE, RADAR_AUTH_PRIVATE, RADAR_SITE_NAME, RADAR_MAX_PAGES, RADAR_MAX_DEPTH
 
 ## Command
 
 ```bash
-export IRA_AUTH_URL="https://staging.miempresa.com/login"
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
-export IRA_AUTH_ROLE="editor"
+export RADAR_AUTH_URL="https://staging.miempresa.com/login"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
+export RADAR_AUTH_ROLE="editor"
 ./scenarios/run-auth-real.sh
 ```
 

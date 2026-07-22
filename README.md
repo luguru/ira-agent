@@ -1,6 +1,8 @@
-# ira-agent
+# Radar A11y
 
 Herramienta local para auditar accesibilidad web con Playwright + axe-core.
+
+Nombre de producto: Radar A11y (marca corta: Radar).
 
 Genera resultados técnicos en JSON y reportes para revisión rápida (HTML y Markdown), incluyendo comparativa de tendencia entre ejecuciones.
 
@@ -14,8 +16,8 @@ Genera resultados técnicos en JSON y reportes para revisión rápida (HTML y Ma
 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/luguru/ira-agent.git
-cd ira-agent
+git clone https://github.com/luguru/radar-a11y.git
+cd radar-a11y
 ```
 
 2. Instalar dependencias
@@ -64,16 +66,23 @@ npm run web:local
 
 Después abre `http://localhost:4173`.
 
+La landing y el informe HTML usan el UI kit corporativo de Radar A11y y cargan branding desde `public/assets` (logos y favicons), manteniendo coherencia visual entre ejecución y reporte.
+
 Nota de seguridad para local/dev:
 
-- Por defecto, IRA Agent bloquea destinos locales/privados para reducir riesgo SSRF.
-- Los scripts `audit:local` y `web:local` activan `IRA_ALLOW_PRIVATE_NETWORKS=true`.
+- Por defecto, Radar A11y bloquea destinos locales/privados para reducir riesgo SSRF.
+- Los scripts `audit:local` y `web:local` activan `RADAR_ALLOW_PRIVATE_NETWORKS=true`.
 - Úsalo solo en entornos controlados y de confianza.
+
+Nota de compatibilidad:
+
+- Las variables de entorno con prefijo `RADAR_` se mantienen por compatibilidad con scripts y CI existentes.
 
 Desde la landing puedes indicar:
 
 - URL a analizar (obligatoria).
 - Título de auditoría (opcional). Si queda vacío, se usa automáticamente el `<title>` de la URL objetivo; si no existe, se intenta con el primer `<h1>` y, como último fallback, `Sitio de prueba`.
+- Prefijo de ID de incidencias (opcional). Si queda vacío, se usa `RADAR-{numero_sucesivo}`; si se informa, el reporte usará ese prefijo (por ejemplo, `PROYECTO-001`).
 - `maxPages` y `maxDepth` (opcionales, con fallback a valores por defecto de `audit.config.json`).
 - `Analizar sitio completo` (fija `maxPages` y `maxDepth` a `99999` y desactiva ambos inputs).
 - Selección de `axeTags` por checkbox.
@@ -161,8 +170,8 @@ Scripts operativos para entorno real:
 
 Variables esperadas:
 
-- `run-private-real.sh`: `IRA_PRIVATE_URL` (obligatoria), `IRA_SITE_NAME`, `IRA_MAX_PAGES`, `IRA_MAX_DEPTH`.
-- `run-auth-real.sh`: `IRA_AUTH_URL`, `IRA_AUDIT_USER`, `IRA_AUDIT_PASSWORD` (obligatorias), `IRA_AUTH_ROLE`, `IRA_AUTH_PRIVATE`, `IRA_SITE_NAME`, `IRA_MAX_PAGES`, `IRA_MAX_DEPTH`.
+- `run-private-real.sh`: `RADAR_PRIVATE_URL` (obligatoria), `RADAR_SITE_NAME`, `RADAR_MAX_PAGES`, `RADAR_MAX_DEPTH`.
+- `run-auth-real.sh`: `RADAR_AUTH_URL`, `RADAR_AUDIT_USER`, `RADAR_AUDIT_PASSWORD` (obligatorias), `RADAR_AUTH_ROLE`, `RADAR_AUTH_PRIVATE`, `RADAR_SITE_NAME`, `RADAR_MAX_PAGES`, `RADAR_MAX_DEPTH`.
 
 Plantilla de evidencia para PR:
 
@@ -200,8 +209,8 @@ npm run audit:scenario:private:mock
 
 ```bash
 cp scenarios/authenticated.example.json audit.config.json
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
 npm run audit:scenario:auth
 ```
 
@@ -209,18 +218,18 @@ Validacion tecnica local del escenario autenticado:
 
 ```bash
 npm run mock:site
-export IRA_AUDIT_USER="editor_qa"
-export IRA_AUDIT_PASSWORD="password_editor"
+export RADAR_AUDIT_USER="editor_qa"
+export RADAR_AUDIT_PASSWORD="password_editor"
 npm run audit:scenario:auth:mock
 ```
 
 Para red privada con login real:
 
 ```bash
-export IRA_AUTH_URL="http://intranet.miempresa.local/login"
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
-export IRA_AUTH_PRIVATE=true
+export RADAR_AUTH_URL="http://intranet.miempresa.local/login"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
+export RADAR_AUTH_PRIVATE=true
 ./scenarios/run-auth-real.sh
 ```
 
@@ -236,7 +245,7 @@ Ejemplo:
 {
   "action": "type",
   "selector": "input[type='password']",
-  "value": "{{env:IRA_AUDIT_PASSWORD}}"
+  "value": "{{env:RADAR_AUDIT_PASSWORD}}"
 }
 ```
 
@@ -285,14 +294,14 @@ Archivos generados:
 
 - result.json: resultado consolidado completo
 - report.html: informe visual navegable
-- informe-ira-automatico.md: informe resumido en Markdown
+- informe-radar-a11y-automatico.md: informe resumido en Markdown
 - results.ndjson: salida incremental por unidad de trabajo
 - trend.json: métricas y deltas respecto a la línea base
 - resumen-ia.md: solo si el resumen IA está habilitado
 
-En `report.html`, cada incidencia se presenta como ficha IRA con campos de gestión (ID, título, impacto, estado, WCAG, nivel, ubicación, perfil afectado, evidencia, resultado esperado, recomendación, responsable y fechas).
+En `report.html`, cada incidencia se presenta como ficha Radar con campos de gestión (ID, título, impacto, estado, WCAG, nivel, ubicación, perfil afectado, evidencia, resultado esperado, recomendación, responsable y fechas).
 
-Comportamiento actual de la ficha IRA:
+Comportamiento actual de la ficha Radar:
 
 - Cada incidencia funciona como acordeón (inicia cerrada y se puede expandir/colapsar desde cabecera o flecha).
 - Las incidencias se muestran agrupadas por regla para navegar y priorizar patrones sin recorrer una lista plana interminable.
@@ -306,7 +315,7 @@ Comportamiento actual de la ficha IRA:
 - La fecha de detección siempre es fija.
 - La fecha de reapertura aparece automáticamente al pasar el estado a `reabierto` y queda registrada.
 - La fecha de validación aparece automáticamente al pasar el estado a `validado`.
-- Los textos técnicos procedentes de `axe-core` se localizan automáticamente al español en `report.html` e `informe-ira-automatico.md`.
+- Los textos técnicos procedentes de `axe-core` se localizan automáticamente al español en `report.html` e `informe-radar-a11y-automatico.md`.
 - La localización aplica una estrategia combinada (traducciones exactas + patrones + fallback genérico) para reducir textos residuales en inglés sin mantenimiento manual continuo.
 
 Campos editables en el reporte:
@@ -328,7 +337,7 @@ Verás deltas en:
 
 - Consola al finalizar
 - report.html
-- informe-ira-automatico.md
+- informe-radar-a11y-automatico.md
 - trend.json
 
 Interpretación rápida:
