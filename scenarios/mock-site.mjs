@@ -39,7 +39,7 @@ const server = createServer(async (request, response) => {
 
     response.writeHead(302, {
       location: `/app/${record.role}`,
-      'set-cookie': `ira_mock_role=${record.role}; Path=/; HttpOnly; SameSite=Lax`,
+      'set-cookie': `radar_mock_role=${record.role}; Path=/; HttpOnly; SameSite=Lax`,
     });
     response.end();
     return;
@@ -68,7 +68,7 @@ const server = createServer(async (request, response) => {
   if (method === 'GET' && requestUrl.pathname === '/logout') {
     response.writeHead(302, {
       location: '/login',
-      'set-cookie': 'ira_mock_role=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
+      'set-cookie': 'radar_mock_role=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
     });
     response.end();
     return;
@@ -122,7 +122,7 @@ function readRoleFromCookies(rawCookies) {
   for (const entry of pairs) {
     const [name, value] = entry.split('=');
 
-    if (name === 'ira_mock_role' && value) {
+    if (name === 'radar_mock_role' && value) {
       return value;
     }
   }

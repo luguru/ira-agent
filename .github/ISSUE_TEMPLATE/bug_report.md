@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a problem in ira-agent
+about: Report a problem in Radar A11y
 title: '[BUG] '
 labels: bug
 assignees: ''

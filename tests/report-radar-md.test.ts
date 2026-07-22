@@ -5,21 +5,21 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { writeIraMarkdown } from '../src/report-ira-md.js';
+import { writeRadarMarkdown } from '../src/report-radar-md.js';
 import { buildRunTrend, calculateRunMetrics } from '../src/run-metrics.js';
 import { createMockAuditRun } from './fixtures/mock-audit-run.js';
 
-test('writeIraMarkdown traduce descripciones e impacto técnico al español', async () => {
-  const outDir = await mkdtemp(path.join(os.tmpdir(), 'ira-md-mock-'));
+test('writeRadarMarkdown traduce descripciones e impacto técnico al español', async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), 'radar-md-mock-'));
 
   try {
     const run = createMockAuditRun();
     const metrics = calculateRunMetrics(run);
     const trend = buildRunTrend(metrics, undefined, undefined);
 
-    await writeIraMarkdown(run, outDir, metrics, trend);
+    await writeRadarMarkdown(run, outDir, metrics, trend);
 
-    const markdown = await readFile(path.join(outDir, 'informe-ira-automatico.md'), 'utf8');
+    const markdown = await readFile(path.join(outDir, 'informe-radar-a11y-automatico.md'), 'utf8');
 
     assert.match(markdown, /\| Métrica \| Actual \| Variación \|/);
     assert.match(

@@ -1,5 +1,5 @@
 export const REPORT_JS = `(() => {
-  const STORAGE_KEY = 'ira-report-edits:' + window.location.pathname;
+  const STORAGE_KEY = 'radar-report-edits:' + window.location.pathname;
   const viewportSelect = document.getElementById('finding-filter-viewport');
   const statusSelect = document.getElementById('finding-filter-status');
   const impactSelect = document.getElementById('finding-filter-impact');

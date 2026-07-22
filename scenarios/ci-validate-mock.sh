@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MOCK_LOG="/tmp/ira-mock-site.log"
+MOCK_LOG="/tmp/radar-mock-site.log"
 
 npm run mock:site >"${MOCK_LOG}" 2>&1 &
 MOCK_PID=$!
@@ -29,10 +29,10 @@ fi
 
 npm run audit:scenario:private:mock -- --maxPages 2 --maxDepth 1
 
-IRA_AUDIT_USER=editor_qa IRA_AUDIT_PASSWORD=password_editor \
+RADAR_AUDIT_USER=editor_qa RADAR_AUDIT_PASSWORD=password_editor \
   npm run audit:scenario:auth:mock -- --maxPages 1 --maxDepth 0
 
-IRA_AUDIT_USER=editor_qa IRA_AUDIT_PASSWORD=bad_password \
+RADAR_AUDIT_USER=editor_qa RADAR_AUDIT_PASSWORD=bad_password \
   npm run audit:scenario:auth:mock -- --maxPages 1 --maxDepth 0
 
 LATEST_RUN_DIR="$(ls -1dt runs/127-0-0-1_* | head -n1)"

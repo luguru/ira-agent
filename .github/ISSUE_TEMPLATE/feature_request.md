@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement for ira-agent
+about: Suggest an improvement for Radar A11y
 title: '[FEAT] '
 labels: enhancement
 assignees: ''

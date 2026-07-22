@@ -5,8 +5,8 @@ import test from 'node:test';
 import { fetchPublicText, UnsafeNetworkTargetError } from '../src/network-security.js';
 
 test('fetchPublicText limita el cuerpo y mantiene el timeout durante la lectura', async (t) => {
-  const previousAllowPrivateNetworks = process.env.IRA_ALLOW_PRIVATE_NETWORKS;
-  process.env.IRA_ALLOW_PRIVATE_NETWORKS = 'true';
+  const previousAllowPrivateNetworks = process.env.RADAR_ALLOW_PRIVATE_NETWORKS;
+  process.env.RADAR_ALLOW_PRIVATE_NETWORKS = 'true';
 
   const server = createServer((request, response) => {
     if (request.url === '/large') {
@@ -34,9 +34,9 @@ test('fetchPublicText limita el cuerpo y mantiene el timeout durante la lectura'
 
   t.after(async () => {
     if (previousAllowPrivateNetworks === undefined) {
-      delete process.env.IRA_ALLOW_PRIVATE_NETWORKS;
+      delete process.env.RADAR_ALLOW_PRIVATE_NETWORKS;
     } else {
-      process.env.IRA_ALLOW_PRIVATE_NETWORKS = previousAllowPrivateNetworks;
+      process.env.RADAR_ALLOW_PRIVATE_NETWORKS = previousAllowPrivateNetworks;
     }
 
     await new Promise<void>((resolve, reject) => {

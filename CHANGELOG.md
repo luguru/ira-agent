@@ -6,13 +6,37 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-22
+
+### Breaking Changes
+
+- Renombre de contrato operativo y de artefactos:
+  - El nombre del paquete pasa de `ira-agent` a `radar-a11y`.
+  - Los scripts y escenarios pasan a usar variables `RADAR_*` en lugar de `IRA_*`.
+  - El informe Markdown generado pasa de `informe-ira-automatico.md` a `informe-radar-a11y-automatico.md`.
+  - Los identificadores visuales de incidencia pasan de prefijo `IRA-` a `RADAR-`.
+  - La clave de persistencia local del reporte cambia de `ira-report-edits:*` a `radar-report-edits:*`.
+
+### Changed
+
+- Marca y posicionamiento:
+  - Consolidacion de marca en `Radar A11y` en documentacion, landing local y textos de reporte.
+  - Actualizacion del nombre de paquete a `radar-a11y` en `package.json` y `package-lock.json`.
+  - Actualizacion de plantillas de contribucion/incidencias y mensajes de ejecucion para reflejar la nueva marca.
+
+### Notes
+
+- Compatibilidad:
+  - Se mantienen variables de entorno con prefijo `RADAR_` para no romper scripts, escenarios y CI existentes.
+  - El slug del repositorio y sus URLs publicas se mantienen temporalmente para evitar enlaces rotos.
+
 ## [0.6.0] - 2026-07-21
 
 ### Changed
 
 - Localización y reportes:
   - Se centraliza la localización técnica en un módulo compartido para traducir automáticamente al español textos procedentes de `axe-core`.
-  - `report.html` e `informe-ira-automatico.md` reutilizan la misma capa de localización para mantener consistencia entre salidas.
+  - `report.html` e `informe-radar-a11y-automatico.md` reutilizan la misma capa de localización para mantener consistencia entre salidas.
   - El reporte Markdown normaliza la cabecera de tendencia de `Delta` a `Variación` y localiza el impacto (`critical`, `serious`, etc.) en etiquetas en español.
 
 - Flujos autenticados:
@@ -25,12 +49,12 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 - Tests y calidad:
   - Nuevas pruebas para validar localización técnica automática, fallback genérico para frases nuevas en inglés y localización de impacto.
-  - Nueva prueba de `report-ira-md` para comprobar traducciones y ausencia de severidades en inglés en el informe Markdown.
+  - Nueva prueba de `report-radar-md` para comprobar traducciones y ausencia de severidades en inglés en el informe Markdown.
   - Nuevas pruebas de validación de configuración para `assert-url-includes` y `failOnFlowError`.
 
 - Flujo local/dev:
   - Nuevos scripts `npm run audit:local` y `npm run web:local` para auditar `localhost` y redes privadas en entornos controlados.
-  - Ambos scripts activan `IRA_ALLOW_PRIVATE_NETWORKS=true` para habilitar pruebas en desarrollo.
+  - Ambos scripts activan `RADAR_ALLOW_PRIVATE_NETWORKS=true` para habilitar pruebas en desarrollo.
 
 - Escenarios de auditoría:
   - Nueva checklist de trabajo en `scenarios/CHECKLIST.md` para separar ejecución en público, intranet/VPN y autenticado.
@@ -42,7 +66,7 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 - Scripts de ejecución:
   - Nuevos comandos `npm run audit:scenario:public`, `npm run audit:scenario:private` y `npm run audit:scenario:auth`.
-  - El script de escenario autenticado valida previamente que existan `IRA_AUDIT_USER` e `IRA_AUDIT_PASSWORD`.
+  - El script de escenario autenticado valida previamente que existan `RADAR_AUDIT_USER` e `RADAR_AUDIT_PASSWORD`.
   - Nuevos comandos `npm run mock:site`, `npm run audit:scenario:private:mock` y `npm run audit:scenario:auth:mock` para validación técnica local.
   - Nuevo comando `npm run audit:scenario:auth:private` para login en redes privadas/intranet.
   - Nuevos scripts ejecutables `scenarios/run-private-real.sh` y `scenarios/run-auth-real.sh` para ejecución real parametrizable.
@@ -177,7 +201,7 @@ Formato basado en Keep a Changelog y versionado SemVer.
   - Se separaron assets del reporte en archivos externos (`report.css` y `report.js`) y se mejoró la maquetación del detalle.
   - Se incorporaron filtros por dispositivo, estado e impacto con contador dinámico y acción de limpieza.
   - Se añadió una leyenda de lectura ampliada con definiciones de campos, estado y baremo de impacto.
-  - El detalle de incidencias evolucionó a una ficha IRA completa (ID, título, impacto, estado, WCAG, nivel, ubicación, perfil afectado, evidencia, resultado esperado, recomendación, responsable y fechas).
+  - El detalle de incidencias evolucionó a una ficha completa (ID, título, impacto, estado, WCAG, nivel, ubicación, perfil afectado, evidencia, resultado esperado, recomendación, responsable y fechas).
   - El estado operativo se muestra en la cabecera como chip y su selector editable se mueve al bloque inferior de metadatos.
   - La cuadrícula interna de cada incidencia se reorganiza por filas funcionales para lectura y seguimiento operativo.
   - Los campos `Estado`, `Responsable` y `Fecha de validación` ahora son editables en el reporte, con persistencia local en navegador para seguimiento operativo.
