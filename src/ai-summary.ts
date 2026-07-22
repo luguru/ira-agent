@@ -36,7 +36,7 @@ export async function generateAiSummary(run: AuditRun): Promise<string> {
   const response = await client.responses.create({
     model: process.env.OPENAI_MODEL ?? 'gpt-5.5',
     instructions: `
-Eres un especialista en accesibilidad digital y redactor técnico de informes IRA.
+Eres un especialista en accesibilidad digital y redactor técnico de informes Radar A11y.
 
 Usa exclusivamente los datos proporcionados.
 No inventes incidencias.

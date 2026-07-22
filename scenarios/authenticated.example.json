@@ -34,12 +34,12 @@
         {
           "action": "type",
           "selector": "input[name='email'], input[type='email']",
-          "value": "{{env:IRA_AUDIT_USER}}"
+          "value": "{{env:RADAR_AUDIT_USER}}"
         },
         {
           "action": "type",
           "selector": "input[name='password'], input[type='password']",
-          "value": "{{env:IRA_AUDIT_PASSWORD}}"
+          "value": "{{env:RADAR_AUDIT_PASSWORD}}"
         },
         {
           "action": "click",

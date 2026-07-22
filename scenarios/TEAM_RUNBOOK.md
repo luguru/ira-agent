@@ -29,29 +29,29 @@ npm run audit:scenario:public -- --url "https://sitio" --siteName "Sitio publico
 Private/VPN:
 
 ```bash
-export IRA_PRIVATE_URL="http://intranet"
-export IRA_SITE_NAME="Intranet QA real"
+export RADAR_PRIVATE_URL="http://intranet"
+export RADAR_SITE_NAME="Intranet QA real"
 ./scenarios/run-private-real.sh
 ```
 
 Auth (publico):
 
 ```bash
-export IRA_AUTH_URL="https://staging/login"
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
-export IRA_AUTH_ROLE="editor"
+export RADAR_AUTH_URL="https://staging/login"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
+export RADAR_AUTH_ROLE="editor"
 ./scenarios/run-auth-real.sh
 ```
 
 Auth (private/VPN):
 
 ```bash
-export IRA_AUTH_URL="http://intranet/login"
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
-export IRA_AUTH_ROLE="editor"
-export IRA_AUTH_PRIVATE=true
+export RADAR_AUTH_URL="http://intranet/login"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
+export RADAR_AUTH_ROLE="editor"
+export RADAR_AUTH_PRIVATE=true
 ./scenarios/run-auth-real.sh
 ```
 

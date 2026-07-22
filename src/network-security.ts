@@ -28,7 +28,7 @@ export class UnsafeNetworkTargetError extends Error {
 export async function assertPublicHttpUrl(input: string): Promise<string> {
   const url = parseHttpUrl(input);
 
-  if (process.env.IRA_ALLOW_PRIVATE_NETWORKS === 'true') {
+  if (process.env.RADAR_ALLOW_PRIVATE_NETWORKS === 'true') {
     return url.toString();
   }
 

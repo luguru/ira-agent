@@ -10,7 +10,7 @@ import { buildRunTrend, calculateRunMetrics } from '../src/run-metrics.js';
 import { createMockAuditRun } from './fixtures/mock-audit-run.js';
 
 test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => {
-  const outDir = await mkdtemp(path.join(os.tmpdir(), 'ira-report-mock-'));
+  const outDir = await mkdtemp(path.join(os.tmpdir(), 'radar-report-mock-'));
 
   try {
     const run = createMockAuditRun();
@@ -54,7 +54,7 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /<option value="minor">Bajo<\/option>/);
     assert.match(html, /class="finding-rule-group" data-rule-id="color-contrast"/);
     assert.match(html, /class="finding-rule-summary"/);
-    assert.match(html, /IRA-001/);
+    assert.match(html, /RADAR-001/);
     assert.match(html, /<span class="meta-label">Responsable<\/span>/);
     assert.match(html, /<span class="meta-label">Fecha de validación<\/span>/);
     assert.match(html, /<span class="meta-label">Fecha de reapertura<\/span>/);

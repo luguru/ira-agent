@@ -16,8 +16,8 @@ La plantilla activa `"failOnFlowError": true` para que cualquier fallo de login 
 
 Formato de placeholder soportado en flows:
 
-- `{{env:IRA_AUDIT_USER}}`
-- `{{env:IRA_AUDIT_PASSWORD}}`
+- `{{env:RADAR_AUDIT_USER}}`
+- `{{env:RADAR_AUDIT_PASSWORD}}`
 
 Paso recomendado para confirmar autenticacion efectiva:
 
@@ -26,25 +26,25 @@ Paso recomendado para confirmar autenticacion efectiva:
 ## Ejecucion
 
 ```bash
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
 npm run audit:scenario:auth
 ```
 
 Con script parametrizable (recomendado para entorno real):
 
 ```bash
-export IRA_AUTH_URL="https://staging.miempresa.com/login"
-export IRA_AUDIT_USER="usuario_qa"
-export IRA_AUDIT_PASSWORD="password_qa"
-export IRA_AUTH_ROLE="editor"
+export RADAR_AUTH_URL="https://staging.miempresa.com/login"
+export RADAR_AUDIT_USER="usuario_qa"
+export RADAR_AUDIT_PASSWORD="password_qa"
+export RADAR_AUTH_ROLE="editor"
 ./scenarios/run-auth-real.sh
 ```
 
 Si el login esta en red privada/intranet:
 
 ```bash
-export IRA_AUTH_PRIVATE=true
+export RADAR_AUTH_PRIVATE=true
 ./scenarios/run-auth-real.sh
 ```
 
@@ -54,16 +54,16 @@ Si falta una variable requerida, el comando falla antes de iniciar auditoria.
 
 ```bash
 npm run mock:site
-export IRA_AUDIT_USER="editor_qa"
-export IRA_AUDIT_PASSWORD="password_editor"
+export RADAR_AUDIT_USER="editor_qa"
+export RADAR_AUDIT_PASSWORD="password_editor"
 npm run audit:scenario:auth:mock
 ```
 
 Prueba negativa (debe producir errores tecnicos por login fallido):
 
 ```bash
-export IRA_AUDIT_USER="editor_qa"
-export IRA_AUDIT_PASSWORD="bad_password"
+export RADAR_AUDIT_USER="editor_qa"
+export RADAR_AUDIT_PASSWORD="bad_password"
 npm run audit:scenario:auth:mock -- --maxPages 1 --maxDepth 0
 ```
 
@@ -74,14 +74,14 @@ Recomendado: ejecutar una auditoria por rol y comparar resultados.
 Ejemplo:
 
 ```bash
-export IRA_AUDIT_USER="editor_qa"
-export IRA_AUDIT_PASSWORD="password_editor"
+export RADAR_AUDIT_USER="editor_qa"
+export RADAR_AUDIT_PASSWORD="password_editor"
 npm run audit:scenario:auth -- --maxPages 5 --maxDepth 1
 ```
 
 ```bash
-export IRA_AUDIT_USER="admin_qa"
-export IRA_AUDIT_PASSWORD="password_admin"
+export RADAR_AUDIT_USER="admin_qa"
+export RADAR_AUDIT_PASSWORD="password_admin"
 npm run audit:scenario:auth -- --maxPages 5 --maxDepth 1
 ```
 
@@ -90,7 +90,7 @@ Consejo: para separar historicos por rol, cambia `siteName` en la configuracion 
 En validacion local puedes ejecutar tambien el rol admin con:
 
 ```bash
-export IRA_AUDIT_USER="admin_qa"
-export IRA_AUDIT_PASSWORD="password_admin"
+export RADAR_AUDIT_USER="admin_qa"
+export RADAR_AUDIT_PASSWORD="password_admin"
 npm run audit:scenario:auth:mock -- --maxPages 1 --maxDepth 0
 ```

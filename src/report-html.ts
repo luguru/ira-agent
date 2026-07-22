@@ -34,7 +34,7 @@ export async function writeHtmlReport(
 <body>
   <header class="report-header">
     <div class="report-header-inner">
-      <p class="report-eyebrow">IRA · Informe automático</p>
+      <p class="report-eyebrow">Radar A11y · Informe automático</p>
       <h1>Informe automático de accesibilidad</h1>
       <p class="report-site-name">${escapeHtml(auditedSiteLabel)}</p>
       <div class="report-header-meta" role="list" aria-label="Metadatos del informe">
@@ -508,7 +508,7 @@ function renderFindingsLegend(): string {
         <dl class="legend-definitions">
           <div class="legend-item">
             <dt>ID</dt>
-            <dd>Identificador único de incidencia, por ejemplo <code>IRA-001</code>.</dd>
+            <dd>Identificador único de incidencia, por ejemplo <code>RADAR-001</code>.</dd>
           </div>
           <div class="legend-item">
             <dt>Título</dt>
@@ -528,7 +528,7 @@ function renderFindingsLegend(): string {
           </div>
           <div class="legend-item">
             <dt>Nivel WCAG</dt>
-            <dd>Nivel de conformidad (A, AA o AAA). En la mayoría de IRA: A/AA.</dd>
+            <dd>Nivel de conformidad (A, AA o AAA). En la mayoría de casos: A/AA.</dd>
           </div>
           <div class="legend-item">
             <dt>Ubicación</dt>
@@ -622,7 +622,7 @@ function formatFlowLabel(value: string): string {
 }
 
 function formatIncidentId(index: number): string {
-  return `IRA-${String(index).padStart(3, '0')}`;
+  return `RADAR-${String(index).padStart(3, '0')}`;
 }
 
 function mapFindingStatusToWorkflowStatus(status: Finding['status']): string {

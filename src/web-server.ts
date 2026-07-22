@@ -150,7 +150,7 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Landing IRA disponible en http://${HOST}:${PORT}`);
+  console.log(`Landing Radar A11y disponible en http://${HOST}:${PORT}`);
 });
 
 async function routeRequest(

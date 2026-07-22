@@ -5,7 +5,7 @@ import { AuditCancelledError, throwIfCancelled } from './audit-control.js';
 import { auditPage } from './audit-page.js';
 import { crawlSite } from './crawler.js';
 import { writeHtmlReport } from './report-html.js';
-import { writeIraMarkdown } from './report-ira-md.js';
+import { writeRadarMarkdown } from './report-radar-md.js';
 import type { AuditConfig, AuditRun, RunMetrics, RunTrend, ViewportConfig } from './types.js';
 import type { AiSummaryProvider } from './ai-summary-provider.js';
 import { ResultStore } from './result-store.js';
@@ -183,13 +183,13 @@ export async function runAudit(options: RunAuditOptions): Promise<RunAuditResult
       'utf8',
     );
     await writeHtmlReport(run, outDir, metrics, trend);
-    await writeIraMarkdown(run, outDir, metrics, trend);
+    await writeRadarMarkdown(run, outDir, metrics, trend);
     await appendRunHistory(historyFilePath, {
       runId,
       siteName: run.siteName,
       baseUrl: run.baseUrl,
       generatedAt: run.generatedAt,
-      outDir,
+      outDir: path.join('runs', runId),
       metrics,
     });
 

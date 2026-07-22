@@ -1,6 +1,6 @@
 # Checklist de escenarios de auditoria
 
-Objetivo: cubrir tres formas de ejecucion de IRA Agent con trazabilidad por rama.
+Objetivo: cubrir tres formas de ejecucion de Radar A11y con trazabilidad por rama.
 
 Transversal:
 
@@ -60,7 +60,7 @@ Runbook:
 
 Criterios de aceptacion:
 
-- Ejecuta con IRA_ALLOW_PRIVATE_NETWORKS=true.
+- Ejecuta con RADAR_ALLOW_PRIVATE_NETWORKS=true.
 - Rechaza destinos privados si la variable no esta activada.
 
 Evidencia:
@@ -98,7 +98,7 @@ Criterios de aceptacion:
 
 Evidencia:
 
-- `npm run audit:scenario:auth` sin `IRA_AUDIT_USER`/`IRA_AUDIT_PASSWORD` falla con mensaje explicito de variables faltantes.
+- `npm run audit:scenario:auth` sin `RADAR_AUDIT_USER`/`RADAR_AUDIT_PASSWORD` falla con mensaje explicito de variables faltantes.
 - Run mock auth editor OK: `127-0-0-1_2026-07-21T10-25-16-715Z`
 - Run mock auth admin OK: `127-0-0-1_2026-07-21T10-24-05-164Z`
 - Run mock auth con password invalida: `127-0-0-1_2026-07-21T10-28-28-362Z` (technicalErrors=2).
