@@ -310,7 +310,8 @@ function renderEffectiveConfig() {
 
   const fallbackTags = options.axeTags || [];
   const fallbackViewports = (options.viewports || []).map((item) => item.name);
-  const defaultIncidentIdPrefix = normalizeIncidentIdPrefix(options.defaults.issueIdPrefix) || 'RADAR';
+  const defaultIncidentIdPrefix =
+    normalizeIncidentIdPrefix(options.defaults.issueIdPrefix) || 'RADAR';
 
   const finalSiteName = form.siteName.value.trim() || resolvedSiteNameDefault;
   const finalUrl = form.url.value.trim() || '(pendiente de completar)';
@@ -339,13 +340,22 @@ function normalizeIncidentIdPrefix(value) {
     return '';
   }
 
-  return value
+  let normalized = value
     .trim()
     .replace(/\s+/g, '-')
     .replace(/[^A-Za-z0-9_-]+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^[-_]+|[-_]+$/g, '')
     .toUpperCase();
+
+  while (normalized.startsWith('-') || normalized.startsWith('_')) {
+    normalized = normalized.slice(1);
+  }
+
+  while (normalized.endsWith('-') || normalized.endsWith('_')) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized;
 }
 
 async function updateResolvedSiteNameDefault() {

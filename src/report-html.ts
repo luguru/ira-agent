@@ -652,13 +652,20 @@ function resolveIncidentPrefix(value: string | undefined): string {
     return 'RADAR';
   }
 
-  const normalized = value
+  let normalized = value
     .trim()
     .replace(/\s+/g, '-')
     .replace(/[^A-Za-z0-9_-]+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^[-_]+|[-_]+$/g, '')
     .toUpperCase();
+
+  while (normalized.startsWith('-') || normalized.startsWith('_')) {
+    normalized = normalized.slice(1);
+  }
+
+  while (normalized.endsWith('-') || normalized.endsWith('_')) {
+    normalized = normalized.slice(0, -1);
+  }
 
   return normalized || 'RADAR';
 }

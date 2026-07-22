@@ -86,13 +86,20 @@ export function normalizeIncidentIdPrefix(value: unknown): string {
     return DEFAULT_INCIDENT_ID_PREFIX;
   }
 
-  const normalized = value
+  let normalized = value
     .trim()
     .replace(/\s+/g, '-')
     .replace(/[^A-Za-z0-9_-]+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^[-_]+|[-_]+$/g, '')
     .toUpperCase();
+
+  while (normalized.startsWith('-') || normalized.startsWith('_')) {
+    normalized = normalized.slice(1);
+  }
+
+  while (normalized.endsWith('-') || normalized.endsWith('_')) {
+    normalized = normalized.slice(0, -1);
+  }
 
   return normalized || DEFAULT_INCIDENT_ID_PREFIX;
 }
