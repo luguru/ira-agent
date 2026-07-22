@@ -1,6 +1,6 @@
 {
   "name": "radar-a11y",
-  "version": "0.6.0",
+  "version": "1.0.0",
   "description": "Herramienta local para analisis automatico de accesibilidad y generacion de informes Radar A11y.",
   "type": "module",
   "scripts": {

@@ -6,6 +6,17 @@ Formato basado en Keep a Changelog y versionado SemVer.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-22
+
+### Breaking Changes
+
+- Renombre de contrato operativo y de artefactos:
+  - El nombre del paquete pasa de `ira-agent` a `radar-a11y`.
+  - Los scripts y escenarios pasan a usar variables `RADAR_*` en lugar de `IRA_*`.
+  - El informe Markdown generado pasa de `informe-ira-automatico.md` a `informe-radar-a11y-automatico.md`.
+  - Los identificadores visuales de incidencia pasan de prefijo `IRA-` a `RADAR-`.
+  - La clave de persistencia local del reporte cambia de `ira-report-edits:*` a `radar-report-edits:*`.
+
 ### Changed
 
 - Marca y posicionamiento:
