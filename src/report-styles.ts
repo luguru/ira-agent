@@ -184,6 +184,61 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     background: #263139;
   }
 
+  .report-ai-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none;
+    border: 1px solid #4f616c;
+    background: #006b94;
+    color: #f7f8fa;
+    border-radius: var(--radius-pill);
+    padding: 0.4rem 0.9rem;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 107, 148, 0.26);
+  }
+
+  .report-ai-button:hover {
+    background: #00587a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 88, 122, 0.34);
+  }
+
+  .report-ai-button:focus {
+    background: #00587a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 88, 122, 0.34);
+  }
+
+  .report-ai-button:focus-visible {
+    outline: 3px solid #f4b400;
+    outline-offset: 2px;
+  }
+
+  .ai-analysis-panel {
+    border: 1px solid var(--border-soft);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .ai-analysis-panel p {
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  .ai-analysis-panel .report-ai-button {
+    margin-top: var(--space-xs);
+    inline-size: fit-content;
+  }
+
   main {
     max-inline-size: 1200px;
     margin-inline: auto;
@@ -273,6 +328,11 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     .report-brand-logo {
       max-inline-size: 78%;
     }
+
+    .ai-analysis-panel .report-ai-button {
+      inline-size: 100%;
+      text-align: center;
+    }
   }
 
   .finding-rule-group {
@@ -308,18 +368,21 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     display: none;
   }
 
-  .finding-rule-summary::after {
-    content: '▾';
+  .finding-rule-indicator {
     grid-column: 2;
     grid-row: 1 / span 2;
     align-self: center;
     justify-self: end;
-    color: var(--text-muted);
-    font-size: 0.95rem;
+    inline-size: 0.58rem;
+    block-size: 0.58rem;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transform-origin: center;
   }
 
-  .finding-rule-group[open] .finding-rule-summary::after {
-    transform: rotate(180deg);
+  .finding-rule-group[open] .finding-rule-indicator {
+    transform: rotate(-135deg);
   }
 
   .finding-rule-title {
@@ -504,10 +567,14 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     padding-inline: 0.8rem;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: filter 150ms ease, transform 150ms ease;
   }
 
   .filter-reset:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  .filter-reset:focus {
     filter: brightness(1.05);
     transform: translateY(-1px);
   }
@@ -566,17 +633,18 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     cursor: pointer;
   }
 
-  .accordion-toggle::after {
-    content: '▴';
-    color: var(--text-muted);
-    font-size: 1rem;
+  .accordion-indicator {
     margin-inline-start: auto;
+    inline-size: 0.58rem;
+    block-size: 0.58rem;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(-135deg);
     transform-origin: center;
-    transition: transform 120ms ease;
   }
 
-  .finding-card.is-open .accordion-toggle::after {
-    transform: rotate(180deg);
+  .finding-card.is-open .accordion-indicator {
+    transform: rotate(45deg);
   }
 
   .accordion-toggle:focus-visible {
@@ -868,6 +936,12 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     color: #005476;
   }
 
+  .meta-value a:focus,
+  .criteria-link:focus,
+  .wcag-link:focus {
+    color: #005476;
+  }
+
   .meta-value a:focus-visible,
   .criteria-link:focus-visible,
   .wcag-link:focus-visible {
@@ -950,6 +1024,7 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
     padding: var(--space-md);
     background: var(--bg-muted);
   }
+
 }
 
 @media (max-width: 720px) {
@@ -985,6 +1060,40 @@ export const REPORT_CSS = `@layer tokens, base, layout, components;
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto;
+  }
+
+  .report-ai-button {
+    transform: none !important;
+  }
+
+  .finding-rule-indicator {
+    transform: none !important;
+  }
+
+  .filter-reset {
+    transform: none !important;
+  }
+
+  .accordion-indicator {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion) {
+  .report-ai-button {
+    transform: none !important;
+  }
+
+  .finding-rule-indicator {
+    transform: none !important;
+  }
+
+  .filter-reset {
+    transform: none !important;
+  }
+
+  .accordion-indicator {
+    transform: none !important;
   }
 }
 `;
