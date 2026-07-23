@@ -68,6 +68,8 @@ Después abre `http://localhost:4173`.
 
 La landing y el informe HTML usan el UI kit corporativo de Radar A11y y cargan branding desde `public/assets` (logos y favicons), manteniendo coherencia visual entre ejecución y reporte.
 
+En el encabezado de la landing se explica de forma breve el propósito de la herramienta: automatizar la detección de incidencias de accesibilidad, priorizar acciones de mejora y facilitar la toma de decisiones. También se comunica la posibilidad de interpretación asistida con IA en el reporte.
+
 Nota de seguridad para local/dev:
 
 - Por defecto, Radar A11y bloquea destinos locales/privados para reducir riesgo SSRF.
@@ -317,6 +319,7 @@ Comportamiento actual de la ficha Radar:
 - La fecha de validación aparece automáticamente al pasar el estado a `validado`.
 - Los textos técnicos procedentes de `axe-core` se localizan automáticamente al español en `report.html` e `informe-radar-a11y-automatico.md`.
 - La localización aplica una estrategia combinada (traducciones exactas + patrones + fallback genérico) para reducir textos residuales en inglés sin mantenimiento manual continuo.
+- Antes del bloque `Detalle de incidencias`, el reporte incluye una sección `Interpretación asistida con IA` con el botón `Analizar con IA`, orientada a interpretar hallazgos, priorizar incidencias por impacto y contexto, e identificar un plan de trabajo más claro para afrontar la auditoría.
 
 Campos editables en el reporte:
 

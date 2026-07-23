@@ -39,6 +39,15 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(html, /class="report-site-name">Home<\/p>/);
     assert.match(html, /class="header-chip" role="listitem">Base: https:\/\/example\.com<\/span>/);
     assert.match(html, /class="header-chip" role="listitem">Fecha: 17\/07\/2026<\/span>/);
+    assert.doesNotMatch(html, /class="report-header-actions"/);
+    assert.match(html, /<h2 id="analisis-ia">Interpretación asistida con IA<\/h2>/);
+    assert.match(html, /interpretación asistida de los resultados del reporte/);
+    assert.match(html, /orientar un plan de trabajo para afrontar la auditoría/);
+    assert.match(html, /class="report-ai-button" aria-label="Analizar reporte con IA">/);
+    assert.match(
+      html,
+      /<section aria-labelledby="analisis-ia">[\s\S]*Analizar con IA[\s\S]*<\/section>\s*<section aria-labelledby="detalle">/,
+    );
     assert.match(html, /<th scope="row">Sitio<\/th>/);
     assert.match(html, /<td>Home<\/td>/);
     assert.match(html, /Baremo de impacto/);
@@ -138,6 +147,7 @@ test('writeHtmlReport genera assets y leyenda usando fixture mock', async () => 
     assert.match(css, /finding-rule-group/);
     assert.match(css, /report-header/);
     assert.match(css, /report-header-meta/);
+    assert.match(css, /report-ai-button/);
     assert.match(css, /wcag-link/);
     assert.match(css, /criteria-link/);
     assert.match(css, /incident-input/);

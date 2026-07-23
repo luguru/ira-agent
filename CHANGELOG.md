@@ -17,6 +17,11 @@ Formato basado en Keep a Changelog y versionado SemVer.
   - Se añade un nuevo campo opcional en "Nueva auditoría" para definir el prefijo del ID de incidencias.
   - Si el campo se deja vacío, se aplica automáticamente el formato por defecto `RADAR-{numero_sucesivo}`.
   - El prefijo configurado viaja hasta el reporte HTML y se usa al generar identificadores de incidencia (ejemplo: `PROYECTO-001`).
+  - Se actualiza el texto del header de la landing para explicar de forma breve qué hace la herramienta, para qué sirve y que el reporte ofrece interpretación asistida con IA.
+
+- Reporte HTML y lectura asistida:
+  - Se incorpora la nueva sección `Interpretación asistida con IA` justo antes de `Detalle de incidencias`.
+  - La sección añade el botón `Analizar con IA` y explica su propósito: interpretar resultados, priorizar incidencias y facilitar un plan de trabajo para afrontar la auditoría.
 
 - Servidor web local:
   - Se amplía la entrega de estáticos para soportar `assets` públicos y favicons.
