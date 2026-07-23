@@ -96,12 +96,25 @@ body {
 }
 
 .hero {
-  position: static;
+  position: relative;
   padding: var(--space-6);
   background: #143548;
   color: var(--color-text-inverse);
   overflow: hidden;
   animation: reveal-up var(--motion-slow) var(--motion-easing);
+}
+
+.hero-favicon-mark {
+  position: absolute;
+  top: -150px;
+  right: -125px;
+  width: clamp(650px, 28vw, 900px);
+  height: auto;
+  opacity: 0.25;
+  transform: rotate(25deg);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 
 .hero-brand-row {

@@ -144,6 +144,23 @@ export async function writeHtmlReport(
       ${renderPagesTable(run)}
     </section>
 
+    <section aria-labelledby="analisis-ia">
+      <h2 id="analisis-ia">Interpretación asistida con IA</h2>
+      <div class="ai-analysis-panel">
+        <p>
+          El botón <strong>Analizar con IA</strong> activa una interpretación asistida de los resultados del reporte.
+          Su objetivo es transformar los hallazgos técnicos en una lectura más clara y accionable para el equipo.
+        </p>
+        <p>
+          Esta ayuda permite priorizar incidencias por impacto y contexto, identificar patrones recurrentes
+          y orientar un plan de trabajo para afrontar la auditoría con mayor criterio, foco y trazabilidad.
+        </p>
+        <button type="button" class="report-ai-button" aria-label="Analizar reporte con IA">
+          Analizar con IA
+        </button>
+      </div>
+    </section>
+
     <section aria-labelledby="detalle">
       <h2 id="detalle">Detalle de incidencias</h2>
       ${renderFindingsLegend(incidentPrefix)}
@@ -341,6 +358,7 @@ function renderFindingsTable(
             <span class="chip">${affectedUrls} URLs</span>
             <span class="chip">Impacto: ${escapeHtml(impactLabel)}</span>
           </span>
+          <span class="finding-rule-indicator" aria-hidden="true"></span>
         </summary>
         <div class="finding-rule-body">${cards}</div>
       </details>`;
@@ -417,6 +435,7 @@ function renderFindingCard(finding: Finding, incidentId: string, detectedAt: str
             <span class="chip chip-status-current" data-role="workflow-status-label">${escapeHtml(workflowStatusLabel)}</span>
           </span>
         </span>
+        <span class="accordion-indicator" aria-hidden="true"></span>
       </button>
     </header>
     <div class="finding-body" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(toggleId)}" hidden>
